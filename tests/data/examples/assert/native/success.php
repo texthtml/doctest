@@ -1,0 +1,3 @@
+<?php
+
+assert(true);

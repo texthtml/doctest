@@ -1,0 +1,15 @@
+parameters:
+	level: 9
+	paths:
+		- src
+		- tests
+	symfony:
+		consoleApplicationLoader: tests/phpstan-application.php
+	exceptions:
+		check:
+			missingCheckedExceptionInThrows: true
+			tooWideThrowType: true
+		uncheckedExceptionClasses:
+			- RuntimeException
+	excludePaths:
+		- tests/data/examples
