@@ -11,22 +11,9 @@ final class TestCase
     /**
      * execute an example and return its output
      */
-    public function eval(): string
+    public function eval(): void
     {
-        \ob_start();
-
-        try {
-            eval($this->code);
-
-            $output = \ob_get_clean();
-            \assert(\is_string($output), "example messed up with output buffers");
-
-            return $output;
-        } catch (\Throwable $th) {
-            \ob_get_clean();
-
-            throw $th;
-        }
+        eval($this->code);
     }
 
     /**

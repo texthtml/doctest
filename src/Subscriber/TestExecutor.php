@@ -30,19 +30,29 @@ final class TestExecutor implements EventSubscriberInterface
 
         $expectedFailure = self::expectedFailure($code);
 
-        $output = $expectedFailure === null
-            ? $test->eval()
-            : self::assertThrows($test->eval(...), $expectedFailure);
+        \ob_start();
 
-        Assert::same($output, self::expectedOutput($code));
+        try {
+            $expectedFailure === null
+                ? $test->eval()
+                : self::assertThrows($test->eval(...), $expectedFailure);
+        } finally {
+            $output = \ob_get_clean();
+            \assert(\is_string($output), "example messed up with output buffers");
+
+            $lines = \array_map(\trim(...), \explode(PHP_EOL, $output));
+            $output = \implode(PHP_EOL, \array_filter($lines, static fn (string $line): bool => $line !== ""));
+
+            Assert::same($output, self::expectedOutput($code), 'Expected output to be %2$s. Got: %s');
+        }
     }
 
     /**
-     * @param callable(): string $callable
+     * @param callable(): void $callable
      * @param Failure $expectedFailure
      * @throws \InvalidArgumentException
      */
-    private static function assertThrows(callable $callable, array $expectedFailure): string
+    private static function assertThrows(callable $callable, array $expectedFailure): void
     {
         try {
             $callable();
@@ -57,7 +67,7 @@ final class TestExecutor implements EventSubscriberInterface
 
             Assert::same($actual->getMessage(), $expectedFailure["message"]);
 
-            return "";
+            return;
         }
 
         throw new \InvalidArgumentException(\sprintf(
@@ -83,6 +93,16 @@ final class TestExecutor implements EventSubscriberInterface
 
     private static function expectedOutput(string $code): string
     {
-        return "";
+        $expectedOutput = [];
+
+        foreach (\explode(PHP_EOL, $code) as $line) {
+            \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*[^\s])\s*$/", $line, $matches);
+
+            if (\array_key_exists("text", $matches)) {
+                $expectedOutput[] = $matches["text"];
+            }
+        }
+
+        return \implode(PHP_EOL, $expectedOutput);
     }
 }

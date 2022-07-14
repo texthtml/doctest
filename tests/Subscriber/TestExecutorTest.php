@@ -31,7 +31,8 @@ final class TestExecutorTest extends TestCase
     {
         if ($failure !== null) {
             $this->expectException($failure["class"]);
-            $this->expectExceptionMessage($failure["message"]);
+            $message = \preg_quote($failure["message"], "/");
+            $this->expectExceptionMessageMatches("/^$message$/");
         }
 
         $this->testExecutor->execute(new ExecuteTest($example));
