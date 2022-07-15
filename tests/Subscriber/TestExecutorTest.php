@@ -27,7 +27,7 @@ final class TestExecutorTest extends TestCase
      * @param Failure|null $failure
      * @throws \InvalidArgumentException
      */
-    public function testExample(Example $example, ?array $failure): void
+    public function testExamples(Example $example, ?array $failure): void
     {
         if ($failure !== null) {
             $this->expectException($failure["class"]);
