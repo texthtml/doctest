@@ -46,7 +46,7 @@ final class Progress implements EventSubscriberInterface
 
         $error[] = $this->output->isVeryVerbose()
             ? $event->failure
-            : $error[] = $event->failure->getMessage();
+            : $event->failure->getMessage();
 
         $this->output->error($error);
     }
