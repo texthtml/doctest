@@ -22,7 +22,7 @@ final class AllExamples implements Examples
             $codeblockStartedAt = null;
 
             foreach (\explode(PHP_EOL, $comment) as $n => $line) {
-                if (\ltrim($line) === "* ```") {
+                if (\in_array(\ltrim($line), ["* ```", "* ```php"], strict: true)) {
                     if ($codeblockStartedAt !== null) {
                         yield new Example(\implode(PHP_EOL, $buffer), $location->at($codeblockStartedAt, $n, $index++));
 
