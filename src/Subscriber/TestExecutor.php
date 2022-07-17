@@ -116,12 +116,15 @@ final class TestExecutor implements EventSubscriberInterface
     private function uses(Location $location): array
     {
         $source = $location->source;
+        $extraNamespacePart = "";
 
         if ($source instanceof \ReflectionMethod) {
+            $extraNamespacePart = "\\{$source->getName()}";
             $source = $source->getDeclaringClass();
         }
 
         return [
+            "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index}",
             "use {$source->getNamespaceName()}",
             $source instanceof \ReflectionClass
                 ? "use {$source->getName()}"
