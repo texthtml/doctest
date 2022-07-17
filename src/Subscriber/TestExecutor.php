@@ -4,6 +4,7 @@ namespace TH\DocTest\Subscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Event;
+use TH\DocTest\Location;
 use Webmozart\Assert\Assert;
 
 /**
@@ -26,9 +27,12 @@ final class TestExecutor implements EventSubscriberInterface
      */
     public function execute(Event\ExecuteTest $event): void
     {
-        $test = new TestExecutor\TestCase($code = $event->example->code);
+        $code = $this->uses($event->example->location);
+        $code[] = $originalCode = $event->example->code;
 
-        $expectedFailure = self::expectedFailure($code);
+        $test = new TestExecutor\TestCase(\implode("; ", $code));
+
+        $expectedFailure = self::expectedFailure($originalCode);
 
         \ob_start();
 
@@ -43,7 +47,7 @@ final class TestExecutor implements EventSubscriberInterface
             $lines = \array_map(\trim(...), \explode(PHP_EOL, $output));
             $output = \implode(PHP_EOL, \array_filter($lines, static fn (string $line): bool => $line !== ""));
 
-            Assert::same($output, self::expectedOutput($code), 'Expected output to be %2$s. Got: %s');
+            Assert::same($output, self::expectedOutput($originalCode), 'Expected output to be %2$s. Got: %s');
         }
     }
 
@@ -104,5 +108,24 @@ final class TestExecutor implements EventSubscriberInterface
         }
 
         return \implode(PHP_EOL, $expectedOutput);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function uses(Location $location): array
+    {
+        $source = $location->source;
+
+        if ($source instanceof \ReflectionMethod) {
+            $source = $source->getDeclaringClass();
+        }
+
+        return [
+            "use {$source->getNamespaceName()}",
+            $source instanceof \ReflectionClass
+                ? "use {$source->getName()}"
+                : "use function {$source->getName()}",
+        ];
     }
 }
