@@ -100,7 +100,7 @@ final class TestExecutor implements EventSubscriberInterface
         $expectedOutput = [];
 
         foreach (\explode(PHP_EOL, $code) as $line) {
-            \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*[^\s])\s*$/", $line, $matches);
+            \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*)$/", $line, $matches);
 
             if (\array_key_exists("text", $matches)) {
                 $expectedOutput[] = $matches["text"];
