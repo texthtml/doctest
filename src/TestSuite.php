@@ -21,26 +21,24 @@ final class TestSuite
     {
         $this->eventDispatcher->dispatch(new Event\BeforeTestSuite());
 
+        $allSuccesful = true;
+
         try {
             foreach ($this->examples as $example) {
-                try {
-                    $this->eventDispatcher->dispatch(new Event\BeforeTest($example));
-                    $this->eventDispatcher->dispatch(new Event\ExecuteTest($example));
-                    $this->eventDispatcher->dispatch(new Event\AfterTest($example));
-                    $this->eventDispatcher->dispatch(new Event\AfterTestSuccess($example));
-                } catch (\Throwable $th) {
-                    $this->eventDispatcher->dispatch(new Event\AfterTest($example));
-                    $this->eventDispatcher->dispatch(new Event\AfterTestFailure($example, $th));
-
-                    if ($bail) {
-                        return false;
-                    }
+                if ($this->runExample($example)) {
+                    continue;
                 }
+
+                if ($bail) {
+                    return false;
+                }
+
+                $allSuccesful = false;
             }
 
-            return !isset($th);
+            return $allSuccesful;
         } finally {
-            $this->eventDispatcher->dispatch(new Event\AfterTestSuite(success: !isset($th)));
+            $this->eventDispatcher->dispatch(new Event\AfterTestSuite(success: $allSuccesful));
         }
     }
 
@@ -55,5 +53,22 @@ final class TestSuite
     public static function fromPaths(array $paths, string $filter): self
     {
         return new self(FilteredExamples::fromPaths($paths, $filter));
+    }
+
+    private function runExample(Example $example): bool
+    {
+        try {
+            $this->eventDispatcher->dispatch(new Event\BeforeTest($example));
+            $this->eventDispatcher->dispatch(new Event\ExecuteTest($example));
+            $this->eventDispatcher->dispatch(new Event\AfterTest($example));
+            $this->eventDispatcher->dispatch(new Event\AfterTestSuccess($example));
+
+            return true;
+        } catch (\Throwable $th) {
+            $this->eventDispatcher->dispatch(new Event\AfterTest($example));
+            $this->eventDispatcher->dispatch(new Event\AfterTestFailure($example, $th));
+
+            return false;
+        }
     }
 }

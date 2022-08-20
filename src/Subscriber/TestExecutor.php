@@ -27,7 +27,7 @@ final class TestExecutor implements EventSubscriberInterface
      */
     public function execute(Event\ExecuteTest $event): void
     {
-        $code = $this->uses($event->example->location);
+        $code = $this->prefixes($event->example->location);
         $code[] = $originalCode = $event->example->code;
 
         $test = new TestExecutor\TestCase(\implode("; ", $code));
@@ -113,7 +113,7 @@ final class TestExecutor implements EventSubscriberInterface
     /**
      * @return list<string>
      */
-    private function uses(Location $location): array
+    private function prefixes(Location $location): array
     {
         $source = $location->source;
         $extraNamespacePart = "";
@@ -123,11 +123,14 @@ final class TestExecutor implements EventSubscriberInterface
             $source = $source->getDeclaringClass();
         }
 
-        return [
+        $prefixes = [
             "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index}",
-            $source instanceof \ReflectionClass
-                ? "use {$source->getName()}"
-                : "use function {$source->getName()}",
         ];
+
+        $prefixes[] = $source instanceof \ReflectionFunctionAbstract
+            ? "use {$source->getNamespaceName()}"
+            : "use {$source->getName()}";
+
+        return $prefixes;
     }
 }

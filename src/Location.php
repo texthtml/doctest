@@ -17,15 +17,27 @@ final class Location implements \Stringable
     ) {
     }
 
-    public function at(int $offset, int $length, int $index): Location
+    public function startingAt(int $offset, int $index): Location
     {
         return new self(
             $this->source,
             $this->name,
             $this->path,
             $this->startLine !== null ? $this->startLine + $offset : null,
-            $this->startLine !== null ? $this->startLine + $offset + $length : null,
+            null,
             $index,
+        );
+    }
+
+    public function ofLength(int $length): Location
+    {
+        return new self(
+            $this->source,
+            $this->name,
+            $this->path,
+            $this->startLine,
+            $this->startLine !== null ? $this->startLine + $length : null,
+            $this->index,
         );
     }
 

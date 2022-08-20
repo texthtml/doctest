@@ -52,17 +52,25 @@ final class Files implements \IteratorAggregate
         }
 
         foreach ($paths as $path) {
-            if (\is_file($path)) {
-                yield new \SplFileInfo($path);
-            } elseif (\is_dir($path)) {
-                $finder = new Finder();
+            yield from $this->iteratePath($path);
+        }
+    }
 
-                try {
-                    $finder->in($path);
+    /**
+     * @return \Traversable<\SplFileInfo>
+     */
+    private function iteratePath(string $path): \Traversable
+    {
+        if (\is_file($path)) {
+            yield new \SplFileInfo($path);
+        } elseif (\is_dir($path)) {
+            $finder = new Finder();
 
-                    yield from $finder;
-                } catch (DirectoryNotFoundException) {
-                }
+            try {
+                $finder->in($path);
+
+                yield from $finder;
+            } catch (DirectoryNotFoundException) {
             }
         }
     }
