@@ -125,7 +125,6 @@ final class TestExecutor implements EventSubscriberInterface
 
         return [
             "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index}",
-            "use {$source->getNamespaceName()}",
             $source instanceof \ReflectionClass
                 ? "use {$source->getName()}"
                 : "use function {$source->getName()}",
