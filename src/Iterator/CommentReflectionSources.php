@@ -28,7 +28,7 @@ final class CommentReflectionSources implements \IteratorAggregate
             $path = \stream_resolve_include_path($file->getPathname());
 
             if ($path === false) {
-                throw new \RuntimeException("Could not resolve path to a file to include: $path");
+                throw new \RuntimeException("Could not resolve path to a file to include: {$file->getPathname()}");
             }
 
             include_once $files[] = $path;

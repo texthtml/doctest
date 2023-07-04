@@ -4,6 +4,7 @@ namespace TH\DocTest\Iterator;
 
 use TH\DocTest\Example;
 use TH\DocTest\Location;
+use TH\Maybe\Option;
 
 final class AllExamples implements Examples
 {
@@ -38,29 +39,28 @@ final class AllExamples implements Examples
         $lines = new \ArrayIterator(\explode(PHP_EOL, $comment));
         $index = 1;
 
-        while ($example = $this->nextExample($lines, $location, $index++)) {
-            yield $example;
+        while (($example = $this->nextExample($lines, $location, $index++))->isSome()) {
+            yield $example->unwrap();
         }
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     * @return Option<Example>
      */
-    private function nextExample(\ArrayIterator $lines, Location $location, int $index): ?Example
+    private function nextExample(\ArrayIterator $lines, Location $location, int $index): Option
     {
-        $codeblockStartedAt = $this->findFencedCodeBlockStart($lines);
-
-        if ($codeblockStartedAt === null) {
-            return null;
-        }
-
-        return $this->readExample($lines, $location->startingAt($codeblockStartedAt, $index));
+        return $this->findFencedCodeBlockStart($lines)->andThen(
+            fn (int $codeblockStartedAt)
+                => $this->readExample($lines, $location->startingAt($codeblockStartedAt, $index)),
+        );
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     * @return Option<Example>
      */
-    private function readExample(\ArrayIterator $lines, Location $location): ?Example
+    private function readExample(\ArrayIterator $lines, Location $location): Option
     {
         $buffer = [];
 
@@ -69,30 +69,31 @@ final class AllExamples implements Examples
             $lines->next();
 
             if ($this->endOfAPHPFencedCodeBlock($line)) {
-                return new Example(\implode(PHP_EOL, $buffer), $location->ofLength($lines->key()));
+                return Option\some(new Example(\implode(PHP_EOL, $buffer), $location->ofLength($lines->key())));
             }
 
             $buffer[] = \preg_replace("/^\s*\*( ?)/", "", $line);
         }
 
-        return null;
+        return Option\none();
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     * @return Option<int>
      */
-    private function findFencedCodeBlockStart(\ArrayIterator $lines): ?int
+    private function findFencedCodeBlockStart(\ArrayIterator $lines): Option
     {
         while ($lines->valid()) {
             $line = $lines->current();
             $lines->next();
 
             if ($this->startOfAPHPFencedCodeBlock($line)) {
-                return $lines->key();
+                return Option\some($lines->key());
             }
         }
 
-        return null;
+        return Option\none();
     }
 
     private function endOfAPHPFencedCodeBlock(string $line): bool

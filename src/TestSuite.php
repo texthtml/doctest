@@ -17,28 +17,27 @@ final class TestSuite
         $this->eventDispatcher = new EventDispatcher();
     }
 
-    public function run(bool $bail): bool
+    public function run(bool $bail): TestOutcome
     {
         $this->eventDispatcher->dispatch(new Event\BeforeTestSuite());
 
-        $allSuccesful = true;
+        $outcome = TestOutcome::Success;
 
         try {
             foreach ($this->examples as $example) {
-                if ($this->runExample($example)) {
-                    continue;
-                }
+                $outcome = TestOutcome::and(
+                    $outcome,
+                    $this->runExample($example),
+                );
 
-                if ($bail) {
-                    return false;
+                if ($bail && $outcome->isFailure()) {
+                    return $outcome;
                 }
-
-                $allSuccesful = false;
             }
 
-            return $allSuccesful;
+            return $outcome;
         } finally {
-            $this->eventDispatcher->dispatch(new Event\AfterTestSuite(success: $allSuccesful));
+            $this->eventDispatcher->dispatch(new Event\AfterTestSuite(outcome: $outcome));
         }
     }
 
@@ -55,7 +54,7 @@ final class TestSuite
         return new self(FilteredExamples::fromPaths($paths, $filter));
     }
 
-    private function runExample(Example $example): bool
+    private function runExample(Example $example): TestOutcome
     {
         try {
             $this->eventDispatcher->dispatch(new Event\BeforeTest($example));
@@ -63,12 +62,12 @@ final class TestSuite
             $this->eventDispatcher->dispatch(new Event\AfterTest($example));
             $this->eventDispatcher->dispatch(new Event\AfterTestSuccess($example));
 
-            return true;
+            return TestOutcome::Success;
         } catch (\Throwable $th) {
             $this->eventDispatcher->dispatch(new Event\AfterTest($example));
             $this->eventDispatcher->dispatch(new Event\AfterTestFailure($example, $th));
 
-            return false;
+            return TestOutcome::Failure;
         }
     }
 }
