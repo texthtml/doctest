@@ -17,7 +17,9 @@
     </rule>
 
     <rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/ruleset.xml">
+        <exclude name="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys" />
         <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion" />
+        <exclude name="SlevomatCodingStandard.Classes.RequireSelfReference" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSingleLineMethodSignature" />
         <exclude name="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming" />
         <exclude name="SlevomatCodingStandard.Commenting.DisallowCommentAfterCode" />
@@ -42,6 +44,13 @@
         <exclude name="SlevomatCodingStandard.Operators.RequireOnlyStandaloneIncrementAndDecrementOperators" />
         <exclude name="SlevomatCodingStandard.PHP.DisallowReference" />
         <exclude name="SlevomatCodingStandard.TypeHints.DisallowMixedTypeHint" />
+        <exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification" />
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Attributes.AttributesOrder">
+        <properties>
+            <property name="orderAlphabetically" value="true" />
+        </properties>
     </rule>
 
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">

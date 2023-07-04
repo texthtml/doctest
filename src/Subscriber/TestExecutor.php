@@ -80,16 +80,34 @@ final class TestExecutor implements EventSubscriberInterface
     }
 
     /**
-     * @return Failure
+     * @return ?Failure
      */
     private static function expectedFailure(string $code): ?array
     {
         foreach (\explode(PHP_EOL, $code) as $line) {
-            \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
+            $expectedFailure = self::expectedFailureFromLine($line);
 
-            if (\array_key_exists("class", $matches)) {
-                return ["class" => $matches["class"], "message" => $matches["message"]];
+            if ($expectedFailure !== null) {
+                return $expectedFailure;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ?Failure
+     */
+    private static function expectedFailureFromLine(string $line): ?array
+    {
+        \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
+
+        if (\array_key_exists("class", $matches)) {
+            if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
+                throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
+            }
+
+            return ["class" => $matches["class"], "message" => $matches["message"]];
         }
 
         return null;

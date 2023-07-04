@@ -97,12 +97,10 @@ final class TestExecutorTest extends TestCase
             \preg_match("/(?<class>[^ ]+) (?<message>.+)/", $matches["comment"], $matches);
 
             if ($matches !== []) {
-                \assert(\is_string($matches["class"]));
                 \assert(
                     \is_subclass_of($matches["class"], \Throwable::class),
                     "{$matches["class"]} is not a Throwable",
                 );
-                \assert(\is_string($matches["message"]));
 
                 $failure = ["class" => $matches["class"], "message" => $matches["message"]];
             }
