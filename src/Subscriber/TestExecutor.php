@@ -5,6 +5,7 @@ namespace TH\DocTest\Subscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Event;
 use TH\DocTest\Location;
+use TH\Maybe\Option;
 use Webmozart\Assert\Assert;
 
 /**
@@ -37,9 +38,10 @@ final class TestExecutor implements EventSubscriberInterface
         \ob_start();
 
         try {
-            $expectedFailure === null
-                ? $test->eval()
-                : self::assertThrows($test->eval(...), $expectedFailure);
+            $expectedFailure->mapOrElse(
+                static fn (array $expectedFailure) => self::assertThrows($test->eval(...), $expectedFailure),
+                $test->eval(...),
+            );
         } finally {
             $output = \ob_get_clean();
             \assert(\is_string($output), "example messed up with output buffers");
@@ -80,23 +82,47 @@ final class TestExecutor implements EventSubscriberInterface
     }
 
     /**
-     * @return Failure
+     * @return Option<Failure>
      */
-    private static function expectedFailure(string $code): ?array
+    private static function expectedFailure(string $code): Option
     {
-        foreach (\explode(PHP_EOL, $code) as $line) {
-            \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
-
-            if (\array_key_exists("class", $matches)) {
-                if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
-                    throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
-                }
-
-                return ["class" => $matches["class"], "message" => $matches["message"]];
+        foreach (self::expectedFailures($code) as $failure) {
+            if ($failure->isSome()) {
+                return $failure;
             }
         }
 
-        return null;
+        /** @var Option<Failure> */
+        return Option\none();
+    }
+
+    /**
+     * @return \Traversable<Option<Failure>>
+     */
+    private static function expectedFailures(string $code): \Traversable
+    {
+        foreach (\explode(PHP_EOL, $code) as $line) {
+            yield self::lineFailure($line);
+        }
+    }
+
+    /**
+     * @return Option<Failure>
+     */
+    private static function lineFailure(string $line): Option
+    {
+        \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
+
+        if (\array_key_exists("class", $matches)) {
+            if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
+                throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
+            }
+
+            return Option\some(["class" => $matches["class"], "message" => $matches["message"]]);
+        }
+
+        /** @var Option<Failure> */
+        return Option\none();
     }
 
     private static function expectedOutput(string $code): string

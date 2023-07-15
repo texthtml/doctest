@@ -26,6 +26,7 @@
         <exclude name="SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment" />
         <exclude name="SlevomatCodingStandard.Commenting.RequireOneLineDocComment" />
         <exclude name="SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment" />
+        <exclude name="SlevomatCodingStandard.ControlStructures.DisallowShortTernaryOperator" />
         <exclude name="SlevomatCodingStandard.ControlStructures.NewWithoutParentheses" />
         <exclude name="SlevomatCodingStandard.ControlStructures.RequireYodaComparison" />
         <exclude name="SlevomatCodingStandard.Exceptions.DisallowNonCapturingCatch" />
@@ -49,6 +50,12 @@
     <rule ref="SlevomatCodingStandard.Attributes.AttributesOrder">
         <properties>
             <property name="orderAlphabetically" value="true" />
+        </properties>
+    </rule>
+
+    <rule ref="SlevomatCodingStandard.Functions.ArrowFunctionDeclaration">
+        <properties>
+            <property name="allowMultiLine" value="true" />
         </properties>
     </rule>
 

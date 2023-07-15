@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "435eac9b2116c25ee0e5c5063a28a351",
+    "content-hash": "c8c0f2e8fca1987cae920b2c27913e77",
     "packages": [
         {
             "name": "psr/container",
@@ -983,6 +983,61 @@
                 }
             ],
             "time": "2023-03-21T21:06:29+00:00"
+        },
+        {
+            "name": "texthtml/maybe",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/texthtml/maybe.git",
+                "reference": "2a8a47e41af899ce7aaabfcf640f805411fe41da"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/texthtml/maybe/zipball/2a8a47e41af899ce7aaabfcf640f805411fe41da",
+                "reference": "2a8a47e41af899ce7aaabfcf640f805411fe41da",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpspec/prophecy-phpunit": "^2.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^1.4",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.1",
+                "phpunit/phpunit": "^9.5",
+                "slevomat/coding-standard": "^8.0",
+                "squizlabs/php_codesniffer": "^3.6",
+                "symfony/console": "^6.1",
+                "symfony/finder": "^6.1",
+                "texthtml/doctest": "^0.2",
+                "vimeo/psalm": "^4.22"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions/option.php",
+                    "src/functions/result.php"
+                ],
+                "psr-4": {
+                    "TH\\Maybe\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Mathieu Rochette",
+                    "email": "mathieu@texthtml.net"
+                }
+            ],
+            "description": "Option & Result types",
+            "support": {
+                "issues": "https://github.com/texthtml/maybe/issues",
+                "source": "https://github.com/texthtml/maybe/tree/v0.2.0"
+            },
+            "time": "2023-07-04T09:25:11+00:00"
         },
         {
             "name": "webmozart/assert",
