@@ -2,6 +2,7 @@
 
 namespace TH\DocTest\Tests\Subscriber;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Finder\Finder;
@@ -17,16 +18,43 @@ final class TestExecutorTest extends TestCase
 {
     private TestExecutor $testExecutor;
 
+    /**
+     * @return \Traversable<string,array{0:Example,1:Failure|null}>
+     * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
+     */
+    public static function examplesProvider(): \Traversable
+    {
+        $index = 1;
+
+        foreach (self::examples() as $path => $example) {
+            ["code" => $code, "failure" => $failure] = self::loadExample($example);
+
+            $location = new Location(
+                new ReflectionClass(self::class),
+                self::class,
+                path: $path,
+                startLine: 1,
+                endLine: null,
+                index: $index++,
+            );
+
+            $realpath = \realpath($path);
+            \assert(\is_string($realpath), "Getting realpath of $path failed");
+
+            yield $realpath => [new Example($code, $location), $failure];
+        }
+    }
+
     public function setUp(): void
     {
         $this->testExecutor = new TestExecutor();
     }
 
     /**
-     * @dataProvider examplesProvider
      * @param Failure|null $failure
      * @throws \InvalidArgumentException
      */
+    #[DataProvider('examplesProvider')]
     public function testExamples(Example $example, ?array $failure): void
     {
         if ($failure !== null) {
@@ -41,37 +69,10 @@ final class TestExecutorTest extends TestCase
     }
 
     /**
-     * @return \Traversable<string,array{0:Example,1:Failure|null}>
-     * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
-     */
-    public function examplesProvider(): \Traversable
-    {
-        $index = 1;
-
-        foreach ($this->examples() as $path => $example) {
-            ["code" => $code, "failure" => $failure] = $this->loadExample($example);
-
-            $location = new Location(
-                new ReflectionClass($this::class),
-                $this::class,
-                path: $path,
-                startLine: 1,
-                endLine: null,
-                index: $index++,
-            );
-
-            $realpath = \realpath($path);
-            \assert(\is_string($realpath), "Getting realpath of $path failed");
-
-            yield $realpath => [new Example($code, $location), $failure];
-        }
-    }
-
-    /**
      * @return \Traversable<string,\SplFileInfo>
      * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
      */
-    public function examples(): \Traversable
+    private static function examples(): \Traversable
     {
         return (new Finder())
             ->files()
@@ -82,7 +83,7 @@ final class TestExecutorTest extends TestCase
     /**
      * @return array{code:string,failure:?Failure}}
      */
-    private function loadExample(\SplFileInfo $example): array
+    private static function loadExample(\SplFileInfo $example): array
     {
         $code = \file_get_contents($example->getPathname());
         \assert(\is_string($code), "Getting content from file {$example->getPathname()} failed");

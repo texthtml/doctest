@@ -102,15 +102,15 @@ final class TestExecutor implements EventSubscriberInterface
     {
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
-        if (\array_key_exists("class", $matches)) {
-            if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
-                throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
-            }
-
-            return ["class" => $matches["class"], "message" => $matches["message"]];
+        if (!\array_key_exists("class", $matches) || !\array_key_exists("message", $matches)) {
+            return null;
         }
 
-        return null;
+        if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
+            throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
+        }
+
+        return ["class" => $matches["class"], "message" => $matches["message"]];
     }
 
     private static function expectedOutput(string $code): string

@@ -16,7 +16,7 @@
         <exclude name="Squiz.WhiteSpace.ScopeClosingBrace" />
     </rule>
 
-    <rule ref="vendor/slevomat/coding-standard/SlevomatCodingStandard/ruleset.xml">
+    <rule ref="SlevomatCodingStandard">
         <exclude name="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys" />
         <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSelfReference" />
@@ -126,13 +126,5 @@
         <properties>
             <property name="ignoreTrailingIfWithOneInstruction" value="true" />
         </properties>
-    </rule>
-
-    <rule ref="SlevomatCodingStandard.Functions.FunctionLength">
-        <exclude-pattern>/src/Application.php</exclude-pattern>
-    </rule>
-
-    <rule ref="SlevomatCodingStandard.Files.FunctionLength">
-        <exclude-pattern>/src/Application.php</exclude-pattern>
     </rule>
 </ruleset>
