@@ -75,7 +75,7 @@ final class TestExecutor implements EventSubscriberInterface
         }
 
         throw new \InvalidArgumentException(\sprintf(
-            "Expected to throw \"{$expectedFailure["class"]}\", got \"none\"",
+            "Expected to throw \"{$expectedFailure["class"]}\", got none",
         ));
     }
 
