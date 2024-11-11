@@ -81,7 +81,7 @@ final class TestExecutorTest extends TestCase
     }
 
     /**
-     * @return array{code:string,failure:?Failure}}
+     * @return array{code:string,failure:?Failure}
      */
     private static function loadExample(\SplFileInfo $example): array
     {
