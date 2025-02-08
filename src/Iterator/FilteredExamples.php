@@ -3,6 +3,7 @@
 namespace TH\DocTest\Iterator;
 
 use TH\DocTest\Example;
+use TH\Maybe\Option;
 
 final class FilteredExamples implements Examples
 {
@@ -30,15 +31,15 @@ final class FilteredExamples implements Examples
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<array<string>> $languageFilter Use empty string for unspecified language
      */
     public static function fromPaths(
         array $paths,
         string $filter,
-        ?array $acceptedLanguages,
+        Option $languageFilter,
     ): self {
         return self::filter(
-            AllExamples::fromPaths($paths, $acceptedLanguages),
+            AllExamples::fromPaths($paths, $languageFilter),
             $filter,
         );
     }

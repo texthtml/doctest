@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use TH\DocTest\Iterator\AllExamples;
 use TH\DocTest\Iterator\Comments;
 use TH\DocTest\Location;
+use TH\Maybe\Option;
 
 final class AllExamplesTest extends TestCase
 {
@@ -72,7 +73,7 @@ final class AllExamplesTest extends TestCase
                 console.log("Hello World!")
                 JS,
             ],
-            "acceptedLanguages" => [""],
+            "languageFilter" => Option\some([""]),
         ];
 
         yield "Comment with a non specified code bloc, when not accepted" => [
@@ -160,17 +161,17 @@ final class AllExamplesTest extends TestCase
 
     /**
      * @param list<string> $expectedExamples
-     * @param list<string>|null $acceptedLanguages
+     * @param Option<array<string>> $languageFilter
      */
     #[DataProvider("commentsProvider")]
     public function testFindingCodeBlocInComments(
         string $comment,
         array $expectedExamples,
-        ?array $acceptedLanguages = ["php"],
+        ?Option $languageFilter = null,
     ): void {
         $examples = new AllExamples(
             self::comments($comment),
-            $acceptedLanguages,
+            $languageFilter ?? Option\some(["php"]),
         );
 
         $count = 0;

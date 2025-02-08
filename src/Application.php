@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input;
 use Symfony\Component\Console\Output;
 use Symfony\Component\Console\SingleCommandApplication;
+use TH\Maybe\Option;
 
 #[AsCommand("doctest")]
 final class Application extends SingleCommandApplication
@@ -61,22 +62,20 @@ final class Application extends SingleCommandApplication
     }
 
     /**
-     * @return list<string>|null
+     * @return Option<array<string>>
      */
-    private function getLanguages(Input\InputInterface $input): ?array
+    private function getLanguages(Input\InputInterface $input): Option
     {
         $languages = [];
 
         foreach ($input->getOption("languages") as $lang) {
             if ($lang === '*') {
-                $languages = null;
-
-                break;
+                return Option\none();
             }
 
             $languages[] = $lang;
         }
 
-        return $languages;
+        return Option\some($languages);
     }
 }

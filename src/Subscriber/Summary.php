@@ -53,7 +53,7 @@ final class Summary implements EventSubscriberInterface
 
     public function printSummary(Event\AfterTestSuite $event): void
     {
-        if ($event->success) {
+        if ($event->outcome->isSuccess()) {
             $this->style->success("All tests succeeded ({$this->numberOfSuccesses})");
 
             return;

@@ -6,6 +6,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Iterator\Examples;
 use TH\DocTest\Iterator\FilteredExamples;
+use TH\Maybe\Option;
 
 final class TestSuite
 {
@@ -49,11 +50,11 @@ final class TestSuite
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<array<string>> $languageFilter Use empty string for unspecified language
      */
-    public static function fromPaths(array $paths, string $filter, ?array $acceptedLanguages): self
+    public static function fromPaths(array $paths, string $filter, Option $languageFilter): self
     {
-        return new self(FilteredExamples::fromPaths($paths, $filter, $acceptedLanguages));
+        return new self(FilteredExamples::fromPaths($paths, $filter, $languageFilter));
     }
 
     private function runExample(Example $example): bool

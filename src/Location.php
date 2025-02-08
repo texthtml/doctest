@@ -2,17 +2,25 @@
 
 namespace TH\DocTest;
 
+use TH\Maybe\Option;
+
 final class Location implements \Stringable
 {
     /**
      * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction $source
+     * @param Option<string> $path,
+     * @param Option<int> $startLine,
+     * @param Option<int> $endLine,
      */
     public function __construct(
         public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
         public readonly string $name,
-        public readonly ?string $path,
-        public readonly ?int $startLine,
-        public readonly ?int $endLine,
+        /** @var Option<string> */
+        public readonly Option $path,
+        /** @var Option<int> */
+        public readonly Option $startLine,
+        /** @var Option<int> */
+        public readonly Option $endLine,
         public readonly int $index,
     ) {}
 
@@ -22,8 +30,8 @@ final class Location implements \Stringable
             $this->source,
             $this->name,
             $this->path,
-            $this->startLine !== null ? $this->startLine + $offset : null,
-            null,
+            $this->startLine->map(static fn (int $startLine) => $startLine + $offset),
+            Option\none(),
             $index,
         );
     }
@@ -35,7 +43,7 @@ final class Location implements \Stringable
             $this->name,
             $this->path,
             $this->startLine,
-            $this->startLine !== null ? $this->startLine + $length : null,
+            $this->startLine->map(static fn (int $startLine) => $startLine + $length),
             $this->index,
         );
     }
@@ -53,32 +61,26 @@ final class Location implements \Stringable
             $name = "{$source->getDeclaringClass()->getName()}::$name(…)";
         }
 
-        $startLine = $source->getStartLine();
-
-        if ($startLine !== false) {
-            $endLine = $startLine;
-            $startLine -= \substr_count($comment, \PHP_EOL);
-        } else {
-            $endLine = $startLine = null;
-        }
+        $endLine = Option\fromValue($source->getStartLine(), noneValue: false);
+        $startLine = $endLine->map(static fn (int $endLine) => $endLine - \substr_count($comment, \PHP_EOL));
 
         return new self(
             $source,
             $name,
-            self::makePathRelative($source->getFileName()),
+            self::makePathRelative(Option\fromValue($source->getFileName(), noneValue: false)),
             $startLine,
             $endLine,
             1,
         );
     }
 
-    private static function makePathRelative(string|false $path): ?string
+    /**
+     * @param Option<string> $path
+     * @return Option<string>
+     */
+    private static function makePathRelative(Option $path): Option
     {
         static $stripSrcDirPattern;
-
-        if ($path === false) {
-            return null;
-        }
 
         $stripSrcDirPattern ??=
             "/^" .
@@ -90,12 +92,24 @@ final class Location implements \Stringable
             ) .
             "(\/*)/";
 
-        return \preg_replace($stripSrcDirPattern, "", $path) ??
-            throw new \RuntimeException("Making path relative failed for : $path");
+        return $path->map(
+            static fn (string $path) => \preg_replace($stripSrcDirPattern, "", $path) ??
+                throw new \RuntimeException("Making path relative failed for : $path"),
+        );
     }
 
     public function __toString(): string
     {
-        return "{$this->name}#{$this->index} ({$this->path}:{$this->startLine})";
+        $suffix = $this->path
+            ->map(
+                fn (string $path) => $this->startLine->mapOr(
+                    static fn (int $startLine) => "$path:$startLine",
+                    $path,
+                ),
+            )
+            ->map(static fn (string $suffix) => " ($suffix)")
+            ->unwrapOr("");
+
+        return "{$this->name}#{$this->index}$suffix";
     }
 }

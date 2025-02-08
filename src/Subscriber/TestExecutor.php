@@ -5,6 +5,7 @@ namespace TH\DocTest\Subscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Event;
 use TH\DocTest\Location;
+use TH\Maybe\Option;
 use Webmozart\Assert\Assert;
 
 /**
@@ -37,9 +38,10 @@ final class TestExecutor implements EventSubscriberInterface
         \ob_start();
 
         try {
-            $expectedFailure === null
-                ? $test->eval()
-                : self::assertThrows($test->eval(...), $expectedFailure);
+            $expectedFailure->mapOrElse(
+                static fn (array $expectedFailure) => self::assertThrows($test->eval(...), $expectedFailure),
+                $test->eval(...),
+            );
         } finally {
             $output = \ob_get_clean();
             \assert(\is_string($output), "example messed up with output buffers");
@@ -80,37 +82,37 @@ final class TestExecutor implements EventSubscriberInterface
     }
 
     /**
-     * @return ?Failure
+     * @return Option<Failure>
      */
-    private static function expectedFailure(string $code): ?array
+    private static function expectedFailure(string $code): Option
     {
         foreach (\explode(PHP_EOL, $code) as $line) {
             $expectedFailure = self::expectedFailureFromLine($line);
 
-            if ($expectedFailure !== null) {
+            if ($expectedFailure->isSome()) {
                 return $expectedFailure;
             }
         }
 
-        return null;
+        return Option\none();
     }
 
     /**
-     * @return ?Failure
+     * @return Option<Failure>
      */
-    private static function expectedFailureFromLine(string $line): ?array
+    private static function expectedFailureFromLine(string $line): Option
     {
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
         if (!\array_key_exists("class", $matches) || !\array_key_exists("message", $matches)) {
-            return null;
+            return Option\none();
         }
 
         if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
-            throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
+            throw new \LogicException("`{$matches['class']}` isn't a `\Throwable`");
         }
 
-        return ["class" => $matches["class"], "message" => $matches["message"]];
+        return Option\some(["class" => $matches["class"], "message" => $matches["message"]]);
     }
 
     private static function expectedOutput(string $code): string
