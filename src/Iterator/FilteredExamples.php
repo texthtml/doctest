@@ -9,8 +9,7 @@ final class FilteredExamples implements Examples
     public function __construct(
         private readonly Examples $examples,
         private readonly string $filter,
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Traversable<Example>
@@ -31,9 +30,16 @@ final class FilteredExamples implements Examples
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
+     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
      */
-    public static function fromPaths(array $paths, string $filter): self
-    {
-        return self::filter(AllExamples::fromPaths($paths), $filter);
+    public static function fromPaths(
+        array $paths,
+        string $filter,
+        ?array $acceptedLanguages,
+    ): self {
+        return self::filter(
+            AllExamples::fromPaths($paths, $acceptedLanguages),
+            $filter,
+        );
     }
 }
