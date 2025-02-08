@@ -7,9 +7,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Finder\Finder;
 use TH\DocTest\Event\ExecuteTest;
-use TH\DocTest\Example;
-use TH\DocTest\Location;
+use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Subscriber\TestExecutor;
+use TH\DocTest\TestCase\Example;
 
 /**
  * @phpstan-type Failure array{class:class-string<\Throwable>,message:string}
@@ -29,7 +29,7 @@ final class TestExecutorTest extends TestCase
         foreach (self::codeBlocs() as $path => $example) {
             ["code" => $code, "failure" => $failure] = self::loadExample($example);
 
-            $location = new Location(
+            $location = new CodeLocation(
                 new ReflectionClass(self::class),
                 self::class,
                 path: $path,

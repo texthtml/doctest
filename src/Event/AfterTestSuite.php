@@ -2,10 +2,12 @@
 
 namespace TH\DocTest\Event;
 
-final class AfterTestSuite
+use TH\DocTest\TestOutcome;
+
+final readonly class AfterTestSuite
 {
     public function __construct(
-        public readonly bool $success,
+        public TestOutcome $outcome,
     ) {
     }
 }

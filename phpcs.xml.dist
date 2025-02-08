@@ -19,7 +19,7 @@
         <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSelfReference" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSingleLineMethodSignature" />
-        <exclude name="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming" />
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousErrorNaming" />
         <exclude name="SlevomatCodingStandard.Commenting.DisallowCommentAfterCode" />
         <exclude name="SlevomatCodingStandard.Commenting.DisallowOneLinePropertyDocComment" />
         <exclude name="SlevomatCodingStandard.Commenting.RequireOneLineDocComment" />

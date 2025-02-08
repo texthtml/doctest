@@ -2,13 +2,13 @@
 
 namespace TH\DocTest\Event;
 
-use TH\DocTest\Example;
+use TH\DocTest\TestCase;
 
-final class AfterTestFailure
+final readonly class AfterTestFailure
 {
     public function __construct(
-        public readonly Example $example,
-        public readonly \Throwable $failure,
+        public TestCase $test,
+        public \Throwable $failure,
     ) {
     }
 }

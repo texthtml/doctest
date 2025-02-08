@@ -5,6 +5,7 @@ namespace TH\DocTest\Subscriber;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Attributes;
 use TH\DocTest\Event;
+use TH\DocTest\Location\CodeLocation;
 
 final class TestSetup implements EventSubscriberInterface
 {
@@ -25,14 +26,20 @@ final class TestSetup implements EventSubscriberInterface
 
     public function beforeTest(Event\BeforeTest $event): void
     {
-        $attributes = $event->example->location->source->getAttributes(
+        $location = $event->test->location();
+
+        if (!$location instanceof CodeLocation) {
+            return;
+        }
+
+        $attributes = $location->source->getAttributes(
             Attributes\ExamplesSetup::class,
             \ReflectionAttribute::IS_INSTANCEOF,
         );
 
-        if ($event->example->location->source instanceof \ReflectionMethod) {
+        if ($location->source instanceof \ReflectionMethod) {
             $attributes = \array_merge(
-                $this->attributes($event->example->location->source->getDeclaringClass()),
+                $this->attributes($location->source->getDeclaringClass()),
                 $attributes,
             );
         }
