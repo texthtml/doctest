@@ -55,7 +55,7 @@ final class Application extends SingleCommandApplication
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 
-        return $testSuite->run($input->getOption("bail") ?? false)
+        return $testSuite->run($input->getOption("bail") ?? false)->isSuccess()
             ? Command::SUCCESS
             : Command::FAILURE;
     }

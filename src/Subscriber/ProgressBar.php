@@ -52,7 +52,7 @@ final class ProgressBar implements EventSubscriberInterface
 
     public function advance(Event\BeforeTest $event): void
     {
-        $this->progressBar->setMessage($event->example->location->name);
+        $this->progressBar->setMessage((string) $event->test->location());
         $this->progressBar->advance();
     }
 

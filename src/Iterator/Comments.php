@@ -2,10 +2,10 @@
 
 namespace TH\DocTest\Iterator;
 
-use TH\DocTest\Location;
+use TH\DocTest\TestCase;
 
 /**
- * @extends \IteratorAggregate<Location,string>
+ * @extends \IteratorAggregate<Comment|TestCase\SourceError>
  */
 interface Comments extends \IteratorAggregate
 {

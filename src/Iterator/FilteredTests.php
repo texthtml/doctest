@@ -2,28 +2,28 @@
 
 namespace TH\DocTest\Iterator;
 
-use TH\DocTest\Example;
+use TH\DocTest\TestCase;
 
-final class FilteredExamples implements Examples
+final class FilteredTests implements Tests
 {
     public function __construct(
-        private readonly Examples $examples,
+        private readonly Tests $examples,
         private readonly string $filter,
     ) {}
 
     /**
-     * @return \Traversable<Example>
+     * @return \Traversable<TestCase>
      */
     public function getIterator(): \Traversable
     {
         foreach ($this->examples as $example) {
-            if (\str_contains((string) $example->location, $this->filter)) {
+            if (\str_contains((string) $example->location(), $this->filter)) {
                 yield $example;
             }
         }
     }
 
-    public static function filter(Examples $examples, string $filter): self
+    public static function filter(Tests $examples, string $filter): self
     {
         return new self($examples, $filter);
     }
@@ -38,7 +38,7 @@ final class FilteredExamples implements Examples
         ?array $acceptedLanguages,
     ): self {
         return self::filter(
-            AllExamples::fromPaths($paths, $acceptedLanguages),
+            AllTests::fromPaths($paths, $acceptedLanguages),
             $filter,
         );
     }

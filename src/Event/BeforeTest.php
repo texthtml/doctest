@@ -2,12 +2,12 @@
 
 namespace TH\DocTest\Event;
 
-use TH\DocTest\Example;
+use TH\DocTest\TestCase;
 
-final class BeforeTest
+final readonly class BeforeTest
 {
     public function __construct(
-        public readonly Example $example,
+        public TestCase $test,
     ) {
     }
 }

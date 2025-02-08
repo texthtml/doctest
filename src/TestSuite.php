@@ -4,41 +4,39 @@ namespace TH\DocTest;
 
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use TH\DocTest\Iterator\Examples;
-use TH\DocTest\Iterator\FilteredExamples;
+use TH\DocTest\Iterator\FilteredTests;
+use TH\DocTest\Iterator\Tests;
 
 final class TestSuite
 {
     private EventDispatcher $eventDispatcher;
 
     public function __construct(
-        private readonly Examples $examples,
+        private readonly Tests $tests,
     ) {
         $this->eventDispatcher = new EventDispatcher();
     }
 
-    public function run(bool $bail): bool
+    public function run(bool $bail): TestOutcome
     {
         $this->eventDispatcher->dispatch(new Event\BeforeTestSuite());
 
-        $allSuccesful = true;
+        $suiteOutcome = TestOutcome::Success;
 
         try {
-            foreach ($this->examples as $example) {
-                if ($this->runExample($example)) {
-                    continue;
-                }
+            foreach ($this->tests as $test) {
+                $testOutcome = $this->runTest($test);
 
-                if ($bail) {
-                    return false;
-                }
+                $suiteOutcome = $suiteOutcome->and($testOutcome);
 
-                $allSuccesful = false;
+                if ($bail && $suiteOutcome->isFailure()) {
+                    return $suiteOutcome;
+                }
             }
 
-            return $allSuccesful;
+            return $suiteOutcome;
         } finally {
-            $this->eventDispatcher->dispatch(new Event\AfterTestSuite(success: $allSuccesful));
+            $this->eventDispatcher->dispatch(new Event\AfterTestSuite($suiteOutcome));
         }
     }
 
@@ -53,23 +51,23 @@ final class TestSuite
      */
     public static function fromPaths(array $paths, string $filter, ?array $acceptedLanguages): self
     {
-        return new self(FilteredExamples::fromPaths($paths, $filter, $acceptedLanguages));
+        return new self(FilteredTests::fromPaths($paths, $filter, $acceptedLanguages));
     }
 
-    private function runExample(Example $example): bool
+    private function runTest(TestCase $test): TestOutcome
     {
         try {
-            $this->eventDispatcher->dispatch(new Event\BeforeTest($example));
-            $this->eventDispatcher->dispatch(new Event\ExecuteTest($example));
-            $this->eventDispatcher->dispatch(new Event\AfterTest($example));
-            $this->eventDispatcher->dispatch(new Event\AfterTestSuccess($example));
+            $this->eventDispatcher->dispatch(new Event\BeforeTest($test));
+            $this->eventDispatcher->dispatch(new Event\ExecuteTest($test));
+            $this->eventDispatcher->dispatch(new Event\AfterTest($test));
+            $this->eventDispatcher->dispatch(new Event\AfterTestSuccess($test));
 
-            return true;
+            return TestOutcome::Success;
         } catch (\Throwable $th) {
-            $this->eventDispatcher->dispatch(new Event\AfterTest($example));
-            $this->eventDispatcher->dispatch(new Event\AfterTestFailure($example, $th));
+            $this->eventDispatcher->dispatch(new Event\AfterTest($test));
+            $this->eventDispatcher->dispatch(new Event\AfterTestFailure($test, $th));
 
-            return false;
+            return TestOutcome::Failure;
         }
     }
 }

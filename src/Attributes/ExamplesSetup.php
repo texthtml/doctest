@@ -3,11 +3,11 @@
 namespace TH\DocTest\Attributes;
 
 #[\Attribute]
-final class ExamplesSetup
+final readonly class ExamplesSetup
 {
     public function __construct(
         /** @var class-string */
-        public readonly string $setupClass,
+        public string $setupClass,
     ) {
     }
 }

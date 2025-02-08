@@ -2,7 +2,8 @@
 
 namespace TH\DocTest\Iterator;
 
-use TH\DocTest\Location;
+use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\TestCase;
 
 final class SourceComments implements Comments
 {
@@ -11,15 +12,24 @@ final class SourceComments implements Comments
     ) {}
 
     /**
-     * @return \Traversable<Location,string>
+     * @return \Traversable<Comment|TestCase\SourceError>
      */
     public function getIterator(): \Traversable
     {
         foreach ($this->commentReflectionSources as $commentReflectionSource) {
+            if ($commentReflectionSource instanceof TestCase\SourceError) {
+                yield $commentReflectionSource->location() => $commentReflectionSource;
+
+                continue;
+            }
+
             $comment = $commentReflectionSource->getDocComment();
 
             if ($comment !== false) {
-                yield Location::fromReflection($commentReflectionSource, $comment) => $comment;
+                yield new Comment(
+                    $comment,
+                    CodeLocation::fromReflection($commentReflectionSource, $comment),
+                );
             }
         }
     }

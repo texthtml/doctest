@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace TH\DocTest;
+namespace TH\DocTest\Location;
 
-final class Location implements \Stringable
+final class CodeLocation implements Location
 {
     /**
      * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction $source
@@ -10,32 +10,38 @@ final class Location implements \Stringable
     public function __construct(
         public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
         public readonly string $name,
-        public readonly ?string $path,
+        public readonly string $path,
         public readonly ?int $startLine,
         public readonly ?int $endLine,
         public readonly int $index,
-    ) {}
+    ) {
+    }
 
-    public function startingAt(int $offset, int $index): Location
+    public function startingAt(int $offset): self
     {
         return new self(
             $this->source,
             $this->name,
             $this->path,
             $this->startLine !== null ? $this->startLine + $offset : null,
-            null,
-            $index,
+            $this->endLine,
+            $this->index,
         );
     }
 
-    public function ofLength(int $length): Location
+    public function withIndex(int $index): self
+    {
+        return new self($this->source, $this->name, $this->path, $this->startLine, $this->endLine, $index);
+    }
+
+    public function ofLength(int $length): self
     {
         return new self(
             $this->source,
             $this->name,
             $this->path,
             $this->startLine,
-            $this->startLine !== null ? $this->startLine + $length : null,
+            $this->startLine !== null ? $this->startLine + $length - 1 : null,
             $this->index,
         );
     }
@@ -53,13 +59,14 @@ final class Location implements \Stringable
             $name = "{$source->getDeclaringClass()->getName()}::$name(…)";
         }
 
-        $startLine = $source->getStartLine();
+        $endLine = $source->getStartLine();
 
-        if ($startLine !== false) {
-            $endLine = $startLine;
-            $startLine -= \substr_count($comment, \PHP_EOL);
+        if ($endLine !== false) {
+            $endLine--;
+            $endLine = $endLine;
+            $startLine = $endLine - \substr_count($comment, \PHP_EOL);
         } else {
-            $endLine = $startLine = null;
+            $startLine = $endLine = null;
         }
 
         return new self(
@@ -72,12 +79,12 @@ final class Location implements \Stringable
         );
     }
 
-    private static function makePathRelative(string|false $path): ?string
+    private static function makePathRelative(string|false $path): string
     {
         static $stripSrcDirPattern;
 
         if ($path === false) {
-            return null;
+            return "<Unknown file location>";
         }
 
         $stripSrcDirPattern ??=
@@ -96,6 +103,16 @@ final class Location implements \Stringable
 
     public function __toString(): string
     {
-        return "{$this->name}#{$this->index} ({$this->path}:{$this->startLine})";
+        $suffix = $this->path;
+
+        if ($this->startLine !== null) {
+            $suffix .= ":{$this->startLine}";
+
+            if ($this->endLine !== $this->startLine) {
+                $suffix .= "-{$this->endLine}";
+            }
+        }
+
+        return "{$this->name}#{$this->index} ($suffix)";
     }
 }

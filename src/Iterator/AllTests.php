@@ -2,10 +2,10 @@
 
 namespace TH\DocTest\Iterator;
 
-use TH\DocTest\Example;
-use TH\DocTest\Location;
+use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\TestCase;
 
-final class AllExamples implements Examples
+final class AllTests implements Tests
 {
     /**
      * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
@@ -16,12 +16,18 @@ final class AllExamples implements Examples
     ) {}
 
     /**
-     * @return \Traversable<Example>
+     * @return \Traversable<TestCase>
      */
     public function getIterator(): \Traversable
     {
-        foreach ($this->comments as $location => $comment) {
-            yield from $this->iterateComment($comment, $location);
+        foreach ($this->comments as $comment) {
+            if ($comment instanceof TestCase) {
+                yield $comment;
+
+                continue;
+            }
+
+            yield from $this->iterateComment($comment);
         }
     }
 
@@ -40,16 +46,15 @@ final class AllExamples implements Examples
     }
 
     /**
-     * @return \Traversable<Example>
+     * @return \Traversable<TestCase>
      */
     private function iterateComment(
-        string $comment,
-        Location $location,
+        Comment $comment,
     ): \Traversable {
-        $lines = new \ArrayIterator(\explode(PHP_EOL, $comment));
+        $lines = new \ArrayIterator(\explode(PHP_EOL, $comment->text));
         $index = 1;
 
-        while ($example = $this->nextExample($lines, $location, $index++)) {
+        while ($example = $this->nextExample($lines, $comment->location, $index++)) {
             yield $example;
         }
     }
@@ -59,9 +64,9 @@ final class AllExamples implements Examples
      */
     private function nextExample(
         \ArrayIterator $lines,
-        Location $location,
+        CodeLocation $location,
         int $index,
-    ): ?Example {
+    ): ?TestCase\Example {
         $codeblockStartedAt = $this->findFencedPHPCodeBlockStart($lines);
 
         if ($codeblockStartedAt === null) {
@@ -70,7 +75,7 @@ final class AllExamples implements Examples
 
         return $this->readExample(
             $lines,
-            $location->startingAt($codeblockStartedAt, $index),
+            $location->startingAt($codeblockStartedAt)->withIndex($index),
         );
     }
 
@@ -79,20 +84,23 @@ final class AllExamples implements Examples
      */
     private function readExample(
         \ArrayIterator $lines,
-        Location $location,
-    ): ?Example {
+        CodeLocation $location,
+    ): ?TestCase\Example {
         $buffer = [];
+        $length = 0;
 
         while ($lines->valid()) {
             $line = $lines->current();
             $lines->next();
 
             if ($this->endOfAFencedCodeBlock($line)) {
-                return new Example(
+                return new TestCase\Example(
                     \implode(PHP_EOL, $buffer),
-                    $location->ofLength($lines->key()),
+                    $location->ofLength($length),
                 );
             }
+
+            $length++;
 
             $buffer[] = \preg_replace("/^\s*\*( ?)/", "", $line);
         }
