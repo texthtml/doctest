@@ -45,6 +45,16 @@ final class Files implements \IteratorAggregate
      */
     private function iterate(string $pattern): \Traversable
     {
+        foreach (self::glob($pattern) as $path) {
+            yield from $this->iteratePath($path);
+        }
+    }
+
+    /**
+     * @return \Traversable<string>
+     */
+    private static function glob(string $pattern): \Traversable
+    {
         $paths = \glob($pattern);
 
         if ($paths === false) {
@@ -52,7 +62,7 @@ final class Files implements \IteratorAggregate
         }
 
         foreach ($paths as $path) {
-            yield from $this->iteratePath($path);
+            yield $path;
         }
     }
 

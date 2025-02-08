@@ -4,15 +4,16 @@ namespace TH\DocTest\Iterator;
 
 use TH\DocTest\Example;
 use TH\DocTest\Location;
+use TH\Maybe\Option;
 
 final class AllExamples implements Examples
 {
     /**
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<array<string>> $languageFilter Use empty string for unspecified language
      */
     public function __construct(
         private readonly Comments $comments,
-        private readonly ?array $acceptedLanguages,
+        private readonly Option $languageFilter,
     ) {}
 
     /**
@@ -27,15 +28,15 @@ final class AllExamples implements Examples
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<array<string>> $languageFilter Use empty string for unspecified language
      */
     public static function fromPaths(
         array $paths,
-        ?array $acceptedLanguages,
+        Option $languageFilter,
     ): self {
         return new self(
             SourceComments::fromPaths($paths),
-            $acceptedLanguages,
+            $languageFilter,
         );
     }
 
@@ -49,38 +50,29 @@ final class AllExamples implements Examples
         $lines = new \ArrayIterator(\explode(PHP_EOL, $comment));
         $index = 1;
 
-        while ($example = $this->nextExample($lines, $location, $index++)) {
-            yield $example;
+        while (($example = $this->nextExample($lines, $location, $index++))->isSome()) {
+            yield $example->unwrap();
         }
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     * @return Option<Example>
      */
-    private function nextExample(
-        \ArrayIterator $lines,
-        Location $location,
-        int $index,
-    ): ?Example {
-        $codeblockStartedAt = $this->findFencedPHPCodeBlockStart($lines);
-
-        if ($codeblockStartedAt === null) {
-            return null;
-        }
-
-        return $this->readExample(
-            $lines,
-            $location->startingAt($codeblockStartedAt, $index),
+    private function nextExample(\ArrayIterator $lines, Location $location, int $index): Option
+    {
+        return $this->findFencedCodeBlockStart($lines)->andThen(
+            fn (int $codeblockStartedAt)
+                => $this->readExample($lines, $location->startingAt($codeblockStartedAt, $index)),
         );
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     * @return Option<Example>
      */
-    private function readExample(
-        \ArrayIterator $lines,
-        Location $location,
-    ): ?Example {
+    private function readExample(\ArrayIterator $lines, Location $location): Option
+    {
         $buffer = [];
 
         while ($lines->valid()) {
@@ -88,23 +80,21 @@ final class AllExamples implements Examples
             $lines->next();
 
             if ($this->endOfAFencedCodeBlock($line)) {
-                return new Example(
-                    \implode(PHP_EOL, $buffer),
-                    $location->ofLength($lines->key()),
-                );
+                return Option\some(new Example(\implode(PHP_EOL, $buffer), $location->ofLength($lines->key())));
             }
 
             $buffer[] = \preg_replace("/^\s*\*( ?)/", "", $line);
         }
 
-        return null;
+        return Option\none();
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
      * phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
+     * @return Option<int>
      */
-    private function findFencedPHPCodeBlockStart(\ArrayIterator $lines): ?int
+    private function findFencedCodeBlockStart(\ArrayIterator $lines): Option
     {
         $insideAFencedCodeBlock = false;
 
@@ -119,28 +109,27 @@ final class AllExamples implements Examples
             } else {
                 $lang = $this->startOfAFencedCodeBlock($line);
 
-                if ($lang === false) {
-                    continue;
+                if ($lang->mapOr($this->isAcceptedLanguage(...), default: false)) {
+                    return Option\some($lines->key());
                 }
 
-                if ($this->isAcceptedLanguage($lang)) {
-                    return $lines->key();
+                if ($lang->isNone()) {
+                    continue;
                 }
 
                 $insideAFencedCodeBlock = true;
             }
         }
 
-        return null;
+        return Option\none();
     }
 
     private function isAcceptedLanguage(string $lang): bool
     {
-        if ($this->acceptedLanguages === null) {
-            return true;
-        }
-
-        return \in_array(needle: $lang, haystack: $this->acceptedLanguages, strict: true);
+        return $this->languageFilter->mapOr(
+            callback: static fn (array $languages) => \in_array(needle: $lang, haystack: $languages, strict: true),
+            default: true,
+        );
     }
 
     private function endOfAFencedCodeBlock(string $line): bool
@@ -148,14 +137,17 @@ final class AllExamples implements Examples
         return \ltrim($line) === "* ```";
     }
 
-    private function startOfAFencedCodeBlock(string $line): false|string
+    /**
+     * @return Option<string>
+     */
+    private function startOfAFencedCodeBlock(string $line): Option
     {
         $line = \trim($line);
 
         if (!\str_starts_with($line, "* ```")) {
-            return false;
+            return Option\none();
         }
 
-        return \substr($line, 5);
+        return Option\some(\substr($line, 5));
     }
 }
