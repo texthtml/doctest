@@ -49,10 +49,11 @@ final class TestSuite
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
+     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
      */
-    public static function fromPaths(array $paths, string $filter): self
+    public static function fromPaths(array $paths, string $filter, ?array $acceptedLanguages): self
     {
-        return new self(FilteredExamples::fromPaths($paths, $filter));
+        return new self(FilteredExamples::fromPaths($paths, $filter, $acceptedLanguages));
     }
 
     private function runExample(Example $example): bool

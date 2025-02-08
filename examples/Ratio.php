@@ -1,12 +1,12 @@
 <?php
 
 /**
- * ```
+ * ```php
  * $ratio = new Ratio(0.3);
  * echo $ratio->formatPercentage(); // @prints 30%
  * ```
  *
- * ```
+ * ```php
  * $ratio = new Ratio(0.9);
  * $ratio->value = 0.1; // @throws Error Cannot modify readonly property Ratio::$value
  * ```
@@ -14,7 +14,7 @@
 final class Ratio
 {
     /**
-     * ```
+     * ```php
      * new Ratio(log(0)); // @throws InvalidArgumentException Ratio only accepts finite values. Got -INF
      * ```
      */
@@ -27,7 +27,7 @@ final class Ratio
     }
 
     /**
-     * ```
+     * ```php
      * assert(Ratio::fromPercentage(80)->value === 0.8);
      * ```
      */
@@ -37,7 +37,7 @@ final class Ratio
     }
 
     /**
-     * ```
+     * ```php
      * $ratio = new Ratio(0.167);
      * self::assertEq($ratio->formatPercentage(2), "16.70%");
      * ```

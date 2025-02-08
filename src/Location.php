@@ -14,8 +14,7 @@ final class Location implements \Stringable
         public readonly ?int $startLine,
         public readonly ?int $endLine,
         public readonly int $index,
-    ) {
-    }
+    ) {}
 
     public function startingAt(int $offset, int $index): Location
     {
@@ -81,13 +80,18 @@ final class Location implements \Stringable
             return null;
         }
 
-        $stripSrcDirPattern ??= "/^" . \preg_quote(
-            str: (($cwd = \getcwd()) !== false) ? $cwd : throw new \RuntimeException("getwd failed"),
-            delimiter: "/",
-        ) . "(\/*)/";
+        $stripSrcDirPattern ??=
+            "/^" .
+            \preg_quote(
+                str: ($cwd = \getcwd()) !== false
+                    ? $cwd
+                    : throw new \RuntimeException("getwd failed"),
+                delimiter: "/",
+            ) .
+            "(\/*)/";
 
-        return \preg_replace($stripSrcDirPattern, "", $path)
-            ?? throw new \RuntimeException("Making path relative failed for : $path");
+        return \preg_replace($stripSrcDirPattern, "", $path) ??
+            throw new \RuntimeException("Making path relative failed for : $path");
     }
 
     public function __toString(): string

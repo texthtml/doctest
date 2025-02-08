@@ -15,7 +15,7 @@ example will be marked as failed.
 /**
  * Compute the factorial of a non-negative $n
  *
- * ```
+ * ```php
  * assert(factorial(0) === 1);
  * assert(factorial(5) === 120);
  * ```
@@ -105,4 +105,3 @@ $ ./bin/doctest examples/factorial.php
 # TODO
 
 * Junit output
-* Find PHP examples in markdown

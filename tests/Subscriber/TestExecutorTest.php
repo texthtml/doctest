@@ -22,11 +22,11 @@ final class TestExecutorTest extends TestCase
      * @return \Traversable<string,array{0:Example,1:Failure|null}>
      * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
      */
-    public static function examplesProvider(): \Traversable
+    public static function codeBlocsProvider(): \Traversable
     {
         $index = 1;
 
-        foreach (self::examples() as $path => $example) {
+        foreach (self::codeBlocs() as $path => $example) {
             ["code" => $code, "failure" => $failure] = self::loadExample($example);
 
             $location = new Location(
@@ -54,8 +54,8 @@ final class TestExecutorTest extends TestCase
      * @param Failure|null $failure
      * @throws \InvalidArgumentException
      */
-    #[DataProvider('examplesProvider')]
-    public function testExamples(Example $example, ?array $failure): void
+    #[DataProvider('codeBlocsProvider')]
+    public function testCodeBlocs(Example $example, ?array $failure): void
     {
         if ($failure !== null) {
             $this->expectException($failure["class"]);
@@ -72,11 +72,11 @@ final class TestExecutorTest extends TestCase
      * @return \Traversable<string,\SplFileInfo>
      * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
      */
-    private static function examples(): \Traversable
+    private static function codeBlocs(): \Traversable
     {
         return (new Finder())
             ->files()
-            ->in(__DIR__ . "/../data/examples/")
+            ->in(__DIR__ . "/../data/code-blocs")
             ->name("*.php");
     }
 
