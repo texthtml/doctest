@@ -5,7 +5,7 @@ namespace TH\DocTest;
 final class Location implements \Stringable
 {
     /**
-     * @param \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction $source
+     * @param \ReflectionClass<covariant object>|\ReflectionMethod|\ReflectionFunction $source
      */
     public function __construct(
         public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
@@ -42,7 +42,7 @@ final class Location implements \Stringable
     }
 
     /**
-     * @param \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction $source
+     * @param \ReflectionClass<covariant object>|\ReflectionMethod|\ReflectionFunction $source
      */
     public static function fromReflection(
         \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
