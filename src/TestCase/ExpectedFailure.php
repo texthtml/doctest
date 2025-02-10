@@ -2,11 +2,11 @@
 
 namespace TH\DocTest\TestCase;
 
-final readonly class ExpectedFailure
+final class ExpectedFailure
 {
     public function __construct(
         /** @var class-string<\Throwable> */
-        public string $class,
-        public string $message,
+        public readonly string $class,
+        public readonly string $message,
     ) {}
 }

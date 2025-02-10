@@ -4,10 +4,10 @@ namespace TH\DocTest\Iterator;
 
 use TH\DocTest\Location;
 
-final readonly class Comment
+final class Comment
 {
     public function __construct(
-        public string $text,
-        public Location\CodeLocation $location,
+        public readonly string $text,
+        public readonly Location\CodeLocation $location,
     ) {}
 }

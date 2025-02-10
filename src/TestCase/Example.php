@@ -6,11 +6,11 @@ use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\TestCase;
 use Webmozart\Assert\Assert;
 
-final readonly class Example implements TestCase
+final class Example implements TestCase
 {
     public function __construct(
-        public string $code,
-        private CodeLocation $location,
+        public readonly string $code,
+        private readonly CodeLocation $location,
     ) {}
 
     public function location(): CodeLocation
