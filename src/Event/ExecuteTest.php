@@ -4,10 +4,10 @@ namespace TH\DocTest\Event;
 
 use TH\DocTest\TestCase;
 
-final readonly class ExecuteTest
+final class ExecuteTest
 {
     public function __construct(
-        public TestCase $test,
+        public readonly TestCase $test,
     ) {
     }
 }

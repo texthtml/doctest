@@ -5,11 +5,11 @@ namespace TH\DocTest\TestCase;
 use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
 
-final readonly class SourceError implements TestCase
+final class SourceError implements TestCase
 {
     public function __construct(
-        private FileLocation $location,
-        private \Throwable $error,
+        private readonly FileLocation $location,
+        private readonly \Throwable $error,
     ) {}
 
     public function eval(): never
