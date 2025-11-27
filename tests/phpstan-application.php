@@ -7,6 +7,6 @@ require __DIR__ . "/../vendor/autoload.php";
 
 $application = new Application();
 
-$application->add(new DocTestApplication());
+$application->addCommands([new DocTestApplication()]);
 
 return $application;
