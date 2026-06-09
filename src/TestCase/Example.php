@@ -81,7 +81,7 @@ final class Example implements TestCase
     {
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
-        if ($matches !== []) {
+        if ($matches === []) {
             return null;
         }
 
