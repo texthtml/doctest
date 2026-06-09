@@ -43,7 +43,7 @@ final class Example implements TestCase
         foreach (\explode(PHP_EOL, $this->code) as $line) {
             \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*)$/", $line, $matches);
 
-            if (\array_key_exists("text", $matches)) {
+            if ($matches !== []) {
                 $expectedOutput[] = $matches["text"];
             }
         }
@@ -81,7 +81,7 @@ final class Example implements TestCase
     {
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
-        if (!\array_key_exists("class", $matches) || !\array_key_exists("message", $matches)) {
+        if ($matches === []) {
             return null;
         }
 
