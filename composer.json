@@ -32,7 +32,7 @@
         "webmozart/assert": "^1.11|^2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^11.0|^12.0",
+        "phpunit/phpunit": "^11.0|^12.0|^13.0",
         "carthage-software/mago": "^1.59.0"
     },
     "scripts": {
@@ -43,5 +43,10 @@
         ],
         "analyze": "@php vendor/bin/mago analyze",
         "fix": "@php vendor/bin/mago fix"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
     }
 }

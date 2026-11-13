@@ -1,4 +1,3 @@
-/composer.lock
 /vendor/
 /phpstan.neon
 /.phpunit.result.cache
