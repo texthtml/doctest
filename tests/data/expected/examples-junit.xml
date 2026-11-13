@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="doctest" tests="12" failures="3" time="">
+  <testsuite name="examples/Ratio.php" tests="5" failures="0" time="">
+    <testcase name="Ratio#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio#2" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::__construct(…)#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::fromPercentage(…)#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::formatPercentage(…)#1" classname="examples/Ratio.php" time="" />
+  </testsuite>
+  <testsuite name="examples/factorial.php" tests="7" failures="3" time="">
+    <testcase name="factorial#1" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#2" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#3" classname="examples/factorial.php" time="">
+      <failure type="Webmozart\Assert\InvalidArgumentException" message="Expected no output. Got: &quot;720&quot;">Webmozart\Assert\InvalidArgumentException: Expected no output. Got: &quot;720&quot; in vendor/webmozart/assert/src/Assert.php:2640
+Stack trace:
+#0 vendor/webmozart/assert/src/Assert.php(1078): Webmozart\Assert\Assert::reportInvalidArgument(&apos;Expected no out...&apos;)
+#1 src/Subscriber/TestExecutor.php(45): Webmozart\Assert\Assert::same(&apos;720&apos;, &apos;&apos;, &apos;Expected no out...&apos;)
+#2 vendor/symfony/event-dispatcher/EventDispatcher.php(206): TH\DocTest\Subscriber\TestExecutor-&gt;execute(Object(TH\DocTest\Event\ExecuteTest), &apos;TH\\DocTest\\Even...&apos;, Object(Symfony\Component\EventDispatcher\EventDispatcher))
+#3 vendor/symfony/event-dispatcher/EventDispatcher.php(56): Symfony\Component\EventDispatcher\EventDispatcher-&gt;callListeners(Array, &apos;TH\\DocTest\\Even...&apos;, Object(TH\DocTest\Event\ExecuteTest))
+#4 src/TestSuite.php(63): Symfony\Component\EventDispatcher\EventDispatcher-&gt;dispatch(Object(TH\DocTest\Event\ExecuteTest))
+#5 src/TestSuite.php(30): TH\DocTest\TestSuite-&gt;runTest(Object(TH\DocTest\TestCase\Example))
+#6 src/Application.php(74): TH\DocTest\TestSuite-&gt;run(false)
+#7 vendor/symfony/console/Command/Command.php(285): TH\DocTest\Application-&gt;execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#8 vendor/symfony/console/SingleCommandApplication.php(52): Symfony\Component\Console\Command\Command-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#9 vendor/symfony/console/Application.php(1131): Symfony\Component\Console\SingleCommandApplication-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#10 vendor/symfony/console/Application.php(380): Symfony\Component\Console\Application-&gt;doRunCommand(Object(TH\DocTest\Application), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#11 vendor/symfony/console/Application.php(219): Symfony\Component\Console\Application-&gt;doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#12 vendor/symfony/console/SingleCommandApplication.php(65): Symfony\Component\Console\Application-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#13 bin/doctest(8): Symfony\Component\Console\SingleCommandApplication-&gt;run()
+#14 {main}</failure>
+    </testcase>
+    <testcase name="factorial#4" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#5" classname="examples/factorial.php" time="">
+      <failure type="InvalidArgumentException" message="unexpected negative integer: -10">InvalidArgumentException: unexpected negative integer: -10 in examples/factorial.php:53
+Stack trace:
+#0 src/TestCase/Example.php(25) : eval()&apos;d code(2): factorial(-10)
+#1 src/TestCase/Example.php(25): eval()
+#2 src/Subscriber/TestExecutor.php(35): TH\DocTest\TestCase\Example-&gt;eval()
+#3 vendor/symfony/event-dispatcher/EventDispatcher.php(206): TH\DocTest\Subscriber\TestExecutor-&gt;execute(Object(TH\DocTest\Event\ExecuteTest), &apos;TH\\DocTest\\Even...&apos;, Object(Symfony\Component\EventDispatcher\EventDispatcher))
+#4 vendor/symfony/event-dispatcher/EventDispatcher.php(56): Symfony\Component\EventDispatcher\EventDispatcher-&gt;callListeners(Array, &apos;TH\\DocTest\\Even...&apos;, Object(TH\DocTest\Event\ExecuteTest))
+#5 src/TestSuite.php(63): Symfony\Component\EventDispatcher\EventDispatcher-&gt;dispatch(Object(TH\DocTest\Event\ExecuteTest))
+#6 src/TestSuite.php(30): TH\DocTest\TestSuite-&gt;runTest(Object(TH\DocTest\TestCase\Example))
+#7 src/Application.php(74): TH\DocTest\TestSuite-&gt;run(false)
+#8 vendor/symfony/console/Command/Command.php(285): TH\DocTest\Application-&gt;execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#9 vendor/symfony/console/SingleCommandApplication.php(52): Symfony\Component\Console\Command\Command-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#10 vendor/symfony/console/Application.php(1131): Symfony\Component\Console\SingleCommandApplication-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#11 vendor/symfony/console/Application.php(380): Symfony\Component\Console\Application-&gt;doRunCommand(Object(TH\DocTest\Application), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#12 vendor/symfony/console/Application.php(219): Symfony\Component\Console\Application-&gt;doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#13 vendor/symfony/console/SingleCommandApplication.php(65): Symfony\Component\Console\Application-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#14 bin/doctest(8): Symfony\Component\Console\SingleCommandApplication-&gt;run()
+#15 {main}</failure>
+    </testcase>
+    <testcase name="factorial#6" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#7" classname="examples/factorial.php" time="">
+      <failure type="Webmozart\Assert\InvalidArgumentException" message="Expected a value equal to 3628890. Got: 3628800">Webmozart\Assert\InvalidArgumentException: Expected a value equal to 3628890. Got: 3628800 in vendor/webmozart/assert/src/Assert.php:2640
+Stack trace:
+#0 vendor/webmozart/assert/src/Assert.php(1039): Webmozart\Assert\Assert::reportInvalidArgument(&apos;Expected a valu...&apos;)
+#1 src/TestCase/Example.php(102): Webmozart\Assert\Assert::eq(3628800, 3628890)
+#2 src/TestCase/Example.php(25) : eval()&apos;d code(2): TH\DocTest\TestCase\Example::__callStatic(&apos;Eq&apos;, Array)
+#3 src/TestCase/Example.php(25): eval()
+#4 src/Subscriber/TestExecutor.php(35): TH\DocTest\TestCase\Example-&gt;eval()
+#5 vendor/symfony/event-dispatcher/EventDispatcher.php(206): TH\DocTest\Subscriber\TestExecutor-&gt;execute(Object(TH\DocTest\Event\ExecuteTest), &apos;TH\\DocTest\\Even...&apos;, Object(Symfony\Component\EventDispatcher\EventDispatcher))
+#6 vendor/symfony/event-dispatcher/EventDispatcher.php(56): Symfony\Component\EventDispatcher\EventDispatcher-&gt;callListeners(Array, &apos;TH\\DocTest\\Even...&apos;, Object(TH\DocTest\Event\ExecuteTest))
+#7 src/TestSuite.php(63): Symfony\Component\EventDispatcher\EventDispatcher-&gt;dispatch(Object(TH\DocTest\Event\ExecuteTest))
+#8 src/TestSuite.php(30): TH\DocTest\TestSuite-&gt;runTest(Object(TH\DocTest\TestCase\Example))
+#9 src/Application.php(74): TH\DocTest\TestSuite-&gt;run(false)
+#10 vendor/symfony/console/Command/Command.php(285): TH\DocTest\Application-&gt;execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#11 vendor/symfony/console/SingleCommandApplication.php(52): Symfony\Component\Console\Command\Command-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#12 vendor/symfony/console/Application.php(1131): Symfony\Component\Console\SingleCommandApplication-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#13 vendor/symfony/console/Application.php(380): Symfony\Component\Console\Application-&gt;doRunCommand(Object(TH\DocTest\Application), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#14 vendor/symfony/console/Application.php(219): Symfony\Component\Console\Application-&gt;doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#15 vendor/symfony/console/SingleCommandApplication.php(65): Symfony\Component\Console\Application-&gt;run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#16 bin/doctest(8): Symfony\Component\Console\SingleCommandApplication-&gt;run()
+#17 {main}</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
