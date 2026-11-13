@@ -62,6 +62,9 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml,/tmp/doctest-coverage.xml
+          # search would also pick up the committed examples-coverage.xml
+          # snapshot (plain data, not a coverage report to merge)
+          disable_search: true
           flags: php-${{ matrix.php-versions }}
           fail_ci_if_error: true
 
