@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Iterator\FilteredTests;
@@ -19,6 +20,9 @@ final class TestSuite
         $this->eventDispatcher = new EventDispatcher();
     }
 
+    // bail is the documented CLI behavior (`--bail`): keeping the flag on the public entry point
+    // keeps the runner simple instead of exposing two near-identical run entry points
+    // @mago-expect lint:no-boolean-flag-parameter
     public function run(bool $bail): TestOutcome
     {
         $this->eventDispatcher->dispatch(new Event\BeforeTestSuite());
@@ -51,9 +55,13 @@ final class TestSuite
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
      * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
      */
-    public static function fromPaths(array $paths, string $filter, ?array $acceptedLanguages): self
-    {
-        return new self(FilteredTests::fromPaths($paths, $filter, $acceptedLanguages));
+    public static function fromPaths(
+        array $paths,
+        string $filter,
+        ?array $acceptedLanguages,
+        LoggerInterface $logger,
+    ): self {
+        return new self(FilteredTests::fromPaths($paths, $filter, $acceptedLanguages, $logger));
     }
 
     private function runTest(TestCase $test): TestOutcome

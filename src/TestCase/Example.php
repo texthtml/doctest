@@ -43,6 +43,8 @@ final class Example implements TestCase
         $expectedOutput = [];
 
         foreach (\explode(PHP_EOL, $this->code) as $line) {
+            $matches = [];
+
             \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*)$/", $line, $matches);
 
             if ($matches !== []) {
@@ -79,6 +81,8 @@ final class Example implements TestCase
 
     private static function expectedFailureFromLine(string $line): ?ExpectedFailure
     {
+        $matches = [];
+
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
         if ($matches === []) {
@@ -97,8 +101,10 @@ final class Example implements TestCase
      */
     public static function __callStatic(string $name, array $arguments): void
     {
-        $name = \preg_replace('/^assert/', '', $name);
+        $name = \preg_replace(pattern: '/^assert/', replacement: '', subject: $name);
 
+        // proxying Webmozart Assert calls made from evaluated examples: the method name is dynamic by design
+        // @mago-expect analysis:invalid-member-selector,analysis:string-member-selector
         Assert::$name(...$arguments);
     }
 }

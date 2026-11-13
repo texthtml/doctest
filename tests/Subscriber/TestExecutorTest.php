@@ -32,6 +32,8 @@ final class TestExecutorTest extends TestCase
             ['code' => $code, 'failure' => $failure] = self::loadExample($example);
 
             $location = new CodeLocation(
+                // bare \ReflectionClass is invariant to mago's checker; the source is only used for metadata
+                // @mago-expect analysis:less-specific-nested-argument-type
                 new ReflectionClass(self::class),
                 self::class,
                 path: $path,
@@ -61,13 +63,13 @@ final class TestExecutorTest extends TestCase
     {
         if ($failure !== null) {
             $this->expectException($failure['class']);
-            $message = \preg_quote($failure['message'], '/');
+            $message = \preg_quote(str: $failure['message'], delimiter: '/');
             $this->expectExceptionMessageMatches("/^{$message}$/");
         }
 
         $this->testExecutor->execute(new ExecuteTest($example));
 
-        self::assertNull($failure);
+        static::assertNull($failure);
     }
 
     /**
@@ -90,9 +92,11 @@ final class TestExecutorTest extends TestCase
         $code = \file_get_contents($example->getPathname());
         \assert(\is_string($code), "Getting content from file {$example->getPathname()} failed");
 
-        $code = \preg_replace("/^<\?php/", '', $code);
-        \assert(\is_string($code), 'Something wrong happened');
+        $code = \preg_replace(pattern: "/^<\?php/", replacement: '', subject: $code);
+        \assert(\is_string($code), description: 'Something wrong happened');
         $failure = null;
+
+        $matches = [];
 
         \preg_match("/^( *)\/\/(?<comment>.*)/", $code, $matches);
 

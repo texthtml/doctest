@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
@@ -17,6 +18,7 @@ final class Files implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**
@@ -66,15 +68,26 @@ final class Files implements \IteratorAggregate
     {
         if (\is_file($path)) {
             yield new \SplFileInfo($path);
-        } elseif (\is_dir($path)) {
-            $finder = new Finder();
 
-            try {
-                $finder->in($path);
+            return;
+        }
 
-                yield from $finder;
-            } catch (DirectoryNotFoundException) {
-            }
+        if (!\is_dir($path)) {
+            return;
+        }
+
+        // deterministic output requires deterministic file ordering: readdir order is
+        // filesystem-dependent, so tests must not depend on it
+        $finder = (new Finder())->in($path)->sortByName();
+
+        try {
+            yield from $finder->in($path);
+        } catch (DirectoryNotFoundException $th) {
+            // the directory existed at the is_dir() check above: it was removed since, racing the iteration
+            $this->logger->warning('Skipped non-readable path {path}: {message}', [
+                'path' => $path,
+                'message' => $th->getMessage(),
+            ]);
         }
     }
 }

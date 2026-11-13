@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="doctest" tests="12" failures="3" time="">
+<testsuites name="doctest" tests="14" failures="3" time="">
   <testsuite name="examples/Ratio.php" tests="5" failures="0" time="">
     <testcase name="Ratio#1" classname="examples/Ratio.php" time="" />
     <testcase name="Ratio#2" classname="examples/Ratio.php" time="" />
     <testcase name="Ratio::__construct(…)#1" classname="examples/Ratio.php" time="" />
     <testcase name="Ratio::fromPercentage(…)#1" classname="examples/Ratio.php" time="" />
     <testcase name="Ratio::formatPercentage(…)#1" classname="examples/Ratio.php" time="" />
+  </testsuite>
+  <testsuite name="examples/Setup.php" tests="2" failures="0" time="">
+    <testcase name="Examples\hello#1" classname="examples/Setup.php" time="" />
+    <testcase name="Examples\world#1" classname="examples/Setup.php" time="" />
   </testsuite>
   <testsuite name="examples/factorial.php" tests="7" failures="3" time="">
     <testcase name="factorial#1" classname="examples/factorial.php" time="" />

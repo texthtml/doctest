@@ -8,6 +8,10 @@
 
  [OK] Ratio::formatPercentage(…)#1 (examples/Ratio.php:41-42)
 
+ [OK] Examples\hello#1 (examples/Setup.php:35-37)
+
+ [OK] Examples\world#1 (examples/Setup.php:45-50)
+
  [OK] factorial#1 (examples/factorial.php:7-10)
 
  [OK] factorial#2 (examples/factorial.php:14-16)
@@ -28,7 +32,7 @@
 
          Error: Expected a value equal to 3628890. Got: 3628800
 
- [OK] Number of success: 9
+ [OK] Number of success: 11
 
  [ERROR] Number of failures: 3
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
+use Psr\Log\LoggerInterface;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\TestCase;
 
@@ -28,6 +29,9 @@ final class SourceComments implements Comments
             $comment = $commentReflectionSource->getDocComment();
 
             if ($comment !== false) {
+                // $commentReflectionSource is `ReflectionClass<object>|…`; the differing generic parameters
+                // are equivalent at runtime for the metadata extraction done here
+                // @mago-expect analysis:less-specific-nested-argument-type
                 yield new Comment($comment, CodeLocation::fromReflection($commentReflectionSource, $comment));
             }
         }
@@ -36,8 +40,8 @@ final class SourceComments implements Comments
     /**
      * @param array<string> $paths path to files and folders to look for PHP comments in
      */
-    public static function fromPaths(array $paths): self
+    public static function fromPaths(array $paths, LoggerInterface $logger): self
     {
-        return new self(new CommentReflectionSources($paths));
+        return new self(new CommentReflectionSources($paths, $logger));
     }
 }

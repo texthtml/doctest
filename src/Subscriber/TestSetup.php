@@ -11,7 +11,12 @@ use TH\DocTest\Location\CodeLocation;
 
 final class TestSetup implements EventSubscriberInterface
 {
-    /** @var array<object> */
+    /**
+     * keeps the setup objects alive for the duration of the example: releasing them
+     * earlier would run their destructors mid-test
+     *
+     * @var list<object>
+     */
     private array $handles = [];
 
     /**
@@ -42,7 +47,11 @@ final class TestSetup implements EventSubscriberInterface
             $attributes = \array_merge($this->attributes($location->source->getDeclaringClass()), $attributes);
         }
 
-        $this->handles = \array_map($this->setup(...), $attributes);
+        $this->handles = [];
+
+        foreach ($attributes as $attribute) {
+            $this->handles[] = $attribute->newInstance()->setup;
+        }
     }
 
     public function afterTest(): void
@@ -57,15 +66,5 @@ final class TestSetup implements EventSubscriberInterface
     private function attributes(\ReflectionClass|\ReflectionMethod|\ReflectionFunction $reflection): array
     {
         return $reflection->getAttributes(Attributes\ExamplesSetup::class, \ReflectionAttribute::IS_INSTANCEOF);
-    }
-
-    /**
-     * @param \ReflectionAttribute<Attributes\ExamplesSetup> $attribute
-     */
-    private function setup(\ReflectionAttribute $attribute): object
-    {
-        $setupClass = $attribute->newInstance()->setupClass;
-
-        return new $setupClass();
     }
 }

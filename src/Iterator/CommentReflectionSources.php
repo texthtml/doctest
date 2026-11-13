@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
-use ReflectionException;
+use Psr\Log\LoggerInterface;
 use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
 
@@ -18,6 +18,7 @@ final class CommentReflectionSources implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**
@@ -27,7 +28,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     {
         $files = [];
 
-        foreach (new Files($this->paths) as $file) {
+        foreach (new Files($this->paths, $this->logger) as $file) {
             $originalPath = $file->getPathname();
 
             $path = self::resolveIncludePath($originalPath);
@@ -39,7 +40,8 @@ final class CommentReflectionSources implements \IteratorAggregate
             }
 
             $error = self::load($path, $originalPath);
-            include_once $files[] = $path;
+            $files[] = $path;
+            include_once $path;
 
             if ($error !== null) {
                 yield $error;
@@ -87,7 +89,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function declaredInFiles(\Traversable $sources, array $files): \Traversable
     {
         foreach ($sources as $commentReflectionSource) {
-            if (!\in_array($commentReflectionSource->getFileName(), $files, true)) {
+            if (!\in_array(needle: $commentReflectionSource->getFileName(), haystack: $files, strict: true)) {
                 continue;
             }
 
@@ -129,10 +131,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function functions(): \Traversable
     {
         foreach (\get_defined_functions()['user'] as $functionName) {
-            try {
-                yield new \ReflectionFunction($functionName);
-            } catch (ReflectionException) {
-            }
+            yield new \ReflectionFunction($functionName);
         }
     }
 }
