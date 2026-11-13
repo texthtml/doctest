@@ -14,10 +14,27 @@ if [ "${1:-}" = '--update' ]; then
     update=true
 fi
 
-# base run: no coverage driver needed, keeps console & JUnit snapshots
-# checkable everywhere
+# coverage snapshot: only meaningful when pcov is available & its directory
+# covers the analyzed paths (both are PHP_INI_SYSTEM settings)
+pcov_ok() {
+    php -d pcov.enabled=1 -d pcov.directory="$PWD" -r 'exit(function_exists("pcov\\start") ? 0 : 1);' 2>/dev/null
+}
+
+# one run produces all three artifacts: console, junit & clover (the `-d`
+# ini overrides must precede the script, while `--coverage-clover` belongs to
+# doctest and must follow it — otherwise php-cli claims the flag as its own)
+doctest_ini=()
+doctest_cli=()
+
+if pcov_ok; then
+    doctest_ini=(-d pcov.enabled=1 -d pcov.directory="$PWD")
+    doctest_cli=(--coverage-clover /tmp/doctest-coverage.xml)
+else
+    unset coverage_snapshot
+fi
+
 set +e
-php bin/doctest --no-ansi --junit /tmp/doctest-junit.xml examples > /tmp/doctest-output.txt 2>&1
+php "${doctest_ini[@]}" bin/doctest --no-ansi --junit /tmp/doctest-junit.xml "${doctest_cli[@]}" examples > /tmp/doctest-output.txt 2>&1
 status=$?
 set -e
 
@@ -55,26 +72,7 @@ else
     diff -u "$junit_snapshot" /tmp/doctest-junit-normalized.xml
 fi
 
-# coverage snapshot: only meaningful when pcov is available & its directory
-# covers the analyzed paths (both are PHP_INI_SYSTEM settings); the dedicated
-# run keeps a pcov-less environment from breaking the other snapshots
-pcov_ok() {
-    php -d pcov.enabled=1 -d pcov.directory="$PWD" -r 'exit(function_exists("pcov\\start") ? 0 : 1);' 2>/dev/null
-}
-
-if pcov_ok; then
-    set +e
-    php -d pcov.enabled=1 -d pcov.directory="$PWD" bin/doctest --no-ansi --coverage-clover /tmp/doctest-coverage.xml examples > /tmp/doctest-coverage-output.txt 2>&1
-    status=$?
-    set -e
-
-    # same 3 deliberate failures as the base run
-    if [ "$status" -ne 1 ]; then
-        echo "::error::doctest (coverage run) exited with $status, expected 1"
-        cat /tmp/doctest-coverage-output.txt
-        exit 1
-    fi
-
+if [ -n "${coverage_snapshot:-}" ]; then
     # blank generated/timestamp (they vary per run), make paths relative,
     # drop crap (algorithm can differ across php-code-coverage majors)
     normalize_coverage() {
