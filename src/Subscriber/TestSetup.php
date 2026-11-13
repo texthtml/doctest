@@ -8,10 +8,17 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Attributes;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
-use TH\DocTest\SetUp;
 
 final class TestSetup implements EventSubscriberInterface
 {
+    /**
+     * keeps the setup objects alive for the duration of the example: releasing them
+     * earlier would run their destructors mid-test
+     *
+     * @var list<object>
+     */
+    private array $handles = [];
+
     /**
      * @return array<string,string>
      */
@@ -40,10 +47,21 @@ final class TestSetup implements EventSubscriberInterface
             $attributes = \array_merge($this->attributes($location->source->getDeclaringClass()), $attributes);
         }
 
-        \array_map($this->setup(...), $attributes);
+        $this->handles = [];
+
+        foreach ($attributes as $attribute) {
+            $setups = $attribute->newInstance()->setups;
+
+            foreach (\is_array($setups) ? $setups : [$setups] as $setup) {
+                $this->handles[] = $setup;
+            }
+        }
     }
 
-    public function afterTest(): void {}
+    public function afterTest(): void
+    {
+        $this->handles = [];
+    }
 
     /**
      * @param \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction $reflection
@@ -52,23 +70,5 @@ final class TestSetup implements EventSubscriberInterface
     private function attributes(\ReflectionClass|\ReflectionMethod|\ReflectionFunction $reflection): array
     {
         return $reflection->getAttributes(Attributes\ExamplesSetup::class, \ReflectionAttribute::IS_INSTANCEOF);
-    }
-
-    /**
-     * @param \ReflectionAttribute<Attributes\ExamplesSetup> $attribute
-     */
-    private function setup(\ReflectionAttribute $attribute): object
-    {
-        $setupClass = $attribute->newInstance()->setupClass;
-
-        $reflection = new \ReflectionClass($setupClass);
-
-        if (!$reflection->implementsInterface(SetUp::class)) {
-            throw new \LogicException(
-                "{$setupClass} used in " . Attributes\ExamplesSetup::class . ' must implement ' . SetUp::class,
-            );
-        }
-
-        return $reflection->newInstance();
     }
 }

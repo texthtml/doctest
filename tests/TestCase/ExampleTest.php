@@ -14,6 +14,8 @@ final class ExampleTest extends TestCase
         $this->expectException(\Error::class);
         $this->expectExceptionMessage('Call to undefined method Webmozart\Assert\Assert::NoSuchMethod()');
 
+        // __callStatic proxies to Webmozart Assert; a bogus method name is expected to throw
+        // @mago-expect analysis:non-documented-method
         Example::assertNoSuchMethod();
     }
 
@@ -22,6 +24,8 @@ final class ExampleTest extends TestCase
         $this->expectException(\Error::class);
         $this->expectExceptionMessage('Call to undefined method Webmozart\Assert\Assert::noSuchMethod()');
 
+        // __callStatic proxies to Webmozart Assert; a bogus method name is expected to throw
+        // @mago-expect analysis:non-documented-method
         Example::noSuchMethod();
     }
 }

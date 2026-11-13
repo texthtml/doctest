@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace TH\DocTest;
 
 /**
- * Marker interface for classes used with the {@see Attributes\ExamplesSetup} attribute.
+ * Marker interface for objects usable with the {@see Attributes\ExamplesSetup} attribute.
  *
- * Instances are created fresh before each example and discarded after it: everything
- * belongs in the constructor, which must not require any argument.
+ * You instantiate your setup yourself in the attribute argument — its constructor runs
+ * once per tested example, with whatever arguments you choose:
+ *
+ * ```
+ * #[Attributes\ExamplesSetup(new ClockFreezer('2024-01-01'))]
+ * function myFunction(): void { … }
+ * ```
  */
 interface SetUp {}
