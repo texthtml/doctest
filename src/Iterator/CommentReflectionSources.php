@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use ReflectionException;
 use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
@@ -18,6 +20,7 @@ final class CommentReflectionSources implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {}
 
     /**
@@ -27,7 +30,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     {
         $files = [];
 
-        foreach (new Files($this->paths) as $file) {
+        foreach (new Files($this->paths, $this->logger) as $file) {
             $originalPath = $file->getPathname();
 
             $path = self::resolveIncludePath($originalPath);
@@ -134,7 +137,10 @@ final class CommentReflectionSources implements \IteratorAggregate
                 yield new \ReflectionFunction($functionName);
             } catch (ReflectionException $th) {
                 // get_defined_functions() can race with the autoloader: the function may no longer exist
-                \fwrite(\STDERR, "Warning: skipping {$functionName}: {$th->getMessage()}\n");
+                $this->logger->warning('Skipped unreflectable function {function}: {message}', [
+                    'function' => $functionName,
+                    'message' => $th->getMessage(),
+                ]);
             }
         }
     }

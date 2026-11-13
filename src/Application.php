@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace TH\DocTest;
 
 use Composer\InstalledVersions;
+use Psr\Log\LogLevel;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output;
 use Symfony\Component\Console\SingleCommandApplication;
 
@@ -57,6 +59,7 @@ final class Application extends SingleCommandApplication
             self::strings($input->getArgument('paths')),
             self::string($input->getOption('filter')),
             $this->getLanguages($input),
+            new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]),
         );
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));

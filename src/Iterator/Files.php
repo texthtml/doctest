@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
@@ -17,6 +19,7 @@ final class Files implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {}
 
     /**
@@ -82,7 +85,10 @@ final class Files implements \IteratorAggregate
             yield from $finder;
         } catch (DirectoryNotFoundException $th) {
             // the directory existed at the is_dir() check above: it was removed since, racing the iteration
-            \fwrite(\STDERR, "Warning: skipping {$path}: {$th->getMessage()}\n");
+            $this->logger->warning('Skipped non-readable path {path}: {message}', [
+                'path' => $path,
+                'message' => $th->getMessage(),
+            ]);
         }
     }
 }
