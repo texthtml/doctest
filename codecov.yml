@@ -1,0 +1,15 @@
+comment: false
+
+coverage:
+  status:
+    # gate: overall coverage must not drift more than 2% from the base
+    project:
+      default:
+        target: auto
+        threshold: 2%
+    # new code is expected to carry some environment-dependent branches
+    # (pcov misconfig refusals & co only fire outside the test runner);
+    # keep the patch check visible but non-blocking
+    patch:
+      default:
+        informational: true
