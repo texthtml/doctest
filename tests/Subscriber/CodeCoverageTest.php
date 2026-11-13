@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest\Tests\Subscriber;
 
 use PHPUnit\Framework\TestCase;
-use SebastianBergmann\CodeCoverage\Driver\Selector;
-use SebastianBergmann\CodeCoverage\Exception as CodeCoverageException;
 use TH\DocTest\Event;
 use TH\DocTest\Subscriber\CodeCoverage;
 

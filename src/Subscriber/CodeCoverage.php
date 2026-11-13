@@ -5,13 +5,10 @@ declare(strict_types=1);
 namespace TH\DocTest\Subscriber;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage as PhpCodeCoverage;
-use SebastianBergmann\CodeCoverage\Driver\Driver;
-use SebastianBergmann\CodeCoverage\Driver\Granularity;
 use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Exception as CodeCoverageException;
 use SebastianBergmann\CodeCoverage\Filter;
 use SebastianBergmann\CodeCoverage\Report\Clover;
-use SebastianBergmann\CodeCoverage\Report\Facade as ReportFacade;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Finder\Finder;
 use TH\DocTest\Event;
@@ -79,7 +76,7 @@ final class CodeCoverage implements EventSubscriberInterface
         }
 
         try {
-            $driver = self::driver($filter);
+            $driver = (new Selector())->forLineCoverage($filter);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException(
                 'No code coverage driver available: install & enable pcov (recommended) or xdebug',
@@ -104,54 +101,12 @@ final class CodeCoverage implements EventSubscriberInterface
         $coverage->stop(true);
 
         try {
-            self::writeClover($coverage, $this->filename);
+            (new Clover())->process($coverage, $this->filename);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException("Could not write code coverage to {$this->filename}", previous: $exception);
         } finally {
             self::$coverage = null;
         }
-    }
-
-    /**
-     * php-code-coverage 14 (shipped with phpunit 13) renamed the selector entry
-     * point; select() & Granularity do not exist before it. Both generations
-     * share a common interface, so the analyzer-neutral call goes through
-     * `$driver()` while the version detection is isolated & explained here.
-     *
-     * @mago-expect analysis:non-existent-class-like
-     * @mago-expect analysis:non-existent-method
-     */
-    private static function driver(Filter $filter): Driver
-    {
-        /** @var Driver */
-        $driver = \class_exists(Granularity::class)
-            ? (new Selector())->select($filter, Granularity::Line)
-            : (new Selector())->forLineCoverage($filter);
-
-        return $driver;
-    }
-
-    /**
-     * php-code-coverage 14 requires the report builder step (Clover::process takes
-     * a Node\Directory there), while 11 & 12 process the CodeCoverage object
-     * directly.
-     *
-     * @mago-expect analysis:non-existent-class-like
-     * @mago-expect analysis:non-existent-method
-     * @mago-expect analysis:mixed-method-access
-     */
-    private static function writeClover(PhpCodeCoverage $coverage, string $filename): void
-    {
-        if (\method_exists(ReportFacade::class, 'fromObject')) {
-            ReportFacade::fromObject($coverage)->renderClover($filename);
-
-            return;
-        }
-
-        (new Clover())->process(
-            $coverage,
-            $filename !== '' ? $filename : throw new \LogicException('filename must not be empty'),
-        );
     }
 
     /**
