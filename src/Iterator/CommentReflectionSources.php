@@ -7,7 +7,7 @@ use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
 
 /**
- * @implements \IteratorAggregate<string,\ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction|TestCase\SourceError>
+ * @implements \IteratorAggregate<int,\ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction|TestCase\SourceError>
  */
 final class CommentReflectionSources implements \IteratorAggregate
 {
@@ -20,7 +20,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     }
 
     /**
-     * @return \Traversable<\ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction|TestCase\SourceError>
+     * @return \Traversable<int, \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction|TestCase\SourceError>
      */
     public function getIterator(): \Traversable
     {
@@ -84,13 +84,13 @@ final class CommentReflectionSources implements \IteratorAggregate
     }
 
     /**
-     * @param \Traversable<\ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction> $commentReflectionSources
+     * @param \Traversable<int, \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction> $sources
      * @param array<string> $files
-     * @return \Traversable<\ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction>
+     * @return \Traversable<int, \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction>
      */
-    private function declaredInFiles(\Traversable $commentReflectionSources, array $files): \Traversable
+    private function declaredInFiles(\Traversable $sources, array $files): \Traversable
     {
-        foreach ($commentReflectionSources as $commentReflectionSource) {
+        foreach ($sources as $commentReflectionSource) {
             if (\in_array($commentReflectionSource->getFileName(), $files, true)) {
                 yield $commentReflectionSource;
             }
