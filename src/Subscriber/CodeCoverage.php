@@ -100,13 +100,9 @@ final class CodeCoverage implements EventSubscriberInterface
         // TestStatus API, which moved between major versions
         $coverage->stop(true);
 
-        try {
-            (new Clover())->process($coverage, $this->filename);
-        } catch (CodeCoverageException $exception) {
-            throw new \RuntimeException("Could not write code coverage to {$this->filename}", previous: $exception);
-        } finally {
-            self::$coverage = null;
-        }
+        (new Clover())->process($coverage, $this->filename);
+
+        self::$coverage = null;
     }
 
     /**
