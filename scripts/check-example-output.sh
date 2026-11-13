@@ -1,27 +1,21 @@
 #!/usr/bin/env bash
-# Compare doctest output for examples/ against committed snapshots in
-# tests/data/expected/, or regenerate them with --update.
-#
-# usage:
-#   scripts/check-example-output.sh            # compare
-#   scripts/check-example-output.sh --update   # regenerate snapshots
+# Snapshot-compare the output of `doctest examples/`.
+# Regenerate the snapshot with --update after intentional output changes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-declare -A expected_exit=(
-    [examples/Ratio.php]=0
-    [examples/factorial.php]=1 # documents 3 deliberate failures, see its docblocks
-)
+snapshot=tests/data/expected/examples-output.txt
 
-# lowercase the filename for the snapshot path (ratio-output.txt)
-declare -A snapshot_for=(
-    [examples/Ratio.php]=ratio-output.txt
-    [examples/factorial.php]=factorial-output.txt
-)
+set +e
+php bin/doctest --no-ansi examples > /tmp/doctest-output.txt 2>&1
+status=$?
+set -e
 
-update=false
-if [ "${1:-}" = '--update' ]; then
-    update=true
+# factorial.php documents 3 deliberate failures, so the run is expected to exit 1
+if [ "$status" -ne 1 ]; then
+    echo "::error::doctest exited with $status, expected 1"
+    cat /tmp/doctest-output.txt
+    exit 1
 fi
 
 normalize() {
@@ -30,32 +24,12 @@ normalize() {
         | sed -e 's/[[:space:]]*$//' \
         | cat -s
 }
+normalize < /tmp/doctest-output.txt > /tmp/doctest-normalized.txt
 
-status=0
-for example in "${!expected_exit[@]}"; do
-    snapshot="tests/data/expected/${snapshot_for[$example]}"
-    set +e
-    php bin/doctest --no-ansi "$example" > /tmp/doctest-output.txt 2>&1
-    exit_code=$?
-    set -e
-    if [ "$exit_code" != "${expected_exit[$example]}" ]; then
-        echo "::error::$example exited with $exit_code, expected ${expected_exit[$example]}"
-        cat /tmp/doctest-output.txt
-        status=1
-        continue
-    fi
-    normalize < /tmp/doctest-output.txt > /tmp/doctest-normalized.txt
-    if $update; then
-        mkdir -p "$(dirname "$snapshot")"
-        cp /tmp/doctest-normalized.txt "$snapshot"
-        echo "updated $snapshot"
-    elif ! diff -u "$snapshot" /tmp/doctest-normalized.txt; then
-        echo "::error::output of $example differs from snapshot $snapshot"
-        echo "(if the change is intentional, run: scripts/check-example-output.sh --update)"
-        status=1
-    else
-        echo "$example output matches $snapshot"
-    fi
-done
+if [ "${1:-}" = '--update' ]; then
+    cp /tmp/doctest-normalized.txt "$snapshot"
+    echo "updated $snapshot"
+    exit 0
+fi
 
-exit "$status"
+diff -u "$snapshot" /tmp/doctest-normalized.txt

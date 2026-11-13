@@ -1,3 +1,13 @@
+ [OK] Ratio#1 (examples/Ratio.php:5-6)
+
+ [OK] Ratio#2 (examples/Ratio.php:10-11)
+
+ [OK] Ratio::__construct(…)#1 (examples/Ratio.php:18)
+
+ [OK] Ratio::fromPercentage(…)#1 (examples/Ratio.php:31)
+
+ [OK] Ratio::formatPercentage(…)#1 (examples/Ratio.php:41-42)
+
  [OK] factorial#1 (examples/factorial.php:7-10)
 
  [OK] factorial#2 (examples/factorial.php:14-16)
@@ -18,7 +28,7 @@
 
          Error: Expected a value equal to 3628890. Got: 3628800
 
- [OK] Number of success: 4
+ [OK] Number of success: 9
 
  [ERROR] Number of failures: 3
 
