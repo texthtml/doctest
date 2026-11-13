@@ -25,6 +25,12 @@ final class Application extends SingleCommandApplication
         $this->setVersion(InstalledVersions::getPrettyVersion('texthtml/doctest') ?? 'dev');
     }
 
+    /**
+     * the parameters *are* the command definition; folding them into a DTO would just
+     * move the verbosity while hiding the help text from the signature
+     *
+     * @mago-expect lint:excessive-parameter-list
+     */
     public function __invoke(
         Input\InputInterface $input,
         Output\OutputInterface $output,
@@ -45,6 +51,11 @@ final class Application extends SingleCommandApplication
         #[Option('Write test results to a file in JUnit XML format')]
         ?string $junit = null,
     ): int {
+        // Symfony resolves the attribued parameters to the declared types, but the
+        // analyzer only sees `array` — map back to list<string> at the boundary
+        $paths = self::listOfStrings($paths);
+        $languages = self::listOfStrings($languages);
+
         $testSuite = TestSuite::fromPaths(
             $paths,
             $filter,
@@ -63,6 +74,11 @@ final class Application extends SingleCommandApplication
         }
 
         return $testSuite->run($bail ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    private static function listOfStrings(array $value): array
+    {
+        return array_values(array_filter($value, static fn($item): bool => \is_string($item)));
     }
 
     /**
