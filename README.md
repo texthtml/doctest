@@ -1,7 +1,10 @@
 # doctest PHP
 
 [![CI](https://github.com/texthtml/doctest/actions/workflows/test.yml/badge.svg)](https://github.com/texthtml/doctest/actions/workflows/test.yml)
-[![Packagist](https://img.shields.io/packagist/v/texthtml/doctest)](https://packagist.org/packages/texthtml/doctest)
+[![Codecov](https://img.shields.io/codecov/c/github/texthtml/doctest/main)](https://app.codecov.io/gh/texthtml/doctest)
+[![Latest Version](https://img.shields.io/packagist/v/texthtml/doctest.svg)](https://packagist.org/packages/texthtml/doctest)
+[![PHP](https://img.shields.io/packagist/dependency-v/texthtml/doctest/php)](https://packagist.org/packages/texthtml/doctest)
+[![License](https://img.shields.io/packagist/l/texthtml/doctest.svg)](LICENSE)
 
 Test your docblock code examples.
 
