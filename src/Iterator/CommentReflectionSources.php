@@ -130,11 +130,11 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function functions(): \Traversable
     {
         foreach (\get_defined_functions()['user'] as $functionName) {
-            // get_defined_functions() can race with the autoloader: the function may no longer exist, skipping is intended
-            // @mago-expect lint:no-empty-catch-clause
             try {
                 yield new \ReflectionFunction($functionName);
-            } catch (ReflectionException) {
+            } catch (ReflectionException $th) {
+                // get_defined_functions() can race with the autoloader: the function may no longer exist
+                \fwrite(\STDERR, "Warning: skipping {$functionName}: {$th->getMessage()}\n");
             }
         }
     }
