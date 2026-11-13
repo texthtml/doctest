@@ -9,10 +9,6 @@ excludes = ["tests/data/**", "scripts/**"]
 
 [linter]
 integrations = ["symfony", "phpunit"]
-baseline = "lint-baseline.toml"
-
-[analyzer]
-baseline = "analysis-baseline.toml"
 
 [linter.rules]
 # executing code examples via `eval()` is the core of doctest
