@@ -1,0 +1,24 @@
+ [OK] factorial#1 (examples/factorial.php:7-10)
+
+ [OK] factorial#2 (examples/factorial.php:14-16)
+
+ [ERROR] factorial#3 (examples/factorial.php:20-21)
+
+         Error: Expected no output. Got: "720"
+
+ [OK] factorial#4 (examples/factorial.php:25-26)
+
+ [ERROR] factorial#5 (examples/factorial.php:30-31)
+
+         Error: unexpected negative integer: -10
+
+ [OK] factorial#6 (examples/factorial.php:35-39)
+
+ [ERROR] factorial#7 (examples/factorial.php:44)
+
+         Error: Expected a value equal to 3628890. Got: 3628800
+
+ [OK] Number of success: 4
+
+ [ERROR] Number of failures: 3
+
