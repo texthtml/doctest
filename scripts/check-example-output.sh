@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
-# Snapshot-compare the console output and the JUnit XML output of
-# `doctest examples/`. Regenerate both snapshots with --update after
-# intentional output changes.
+# Snapshot-compare the console output, the JUnit XML output and the code
+# coverage of `doctest examples/`. Regenerate the snapshots with --update
+# after intentional output changes.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 snapshot=tests/data/expected/examples-output.txt
 junit_snapshot=tests/data/expected/examples-junit.xml
+coverage_snapshot=tests/data/expected/examples-coverage.xml
+update=false
 
+if [ "${1:-}" = '--update' ]; then
+    update=true
+fi
+
+# base run: no coverage driver needed, keeps console & JUnit snapshots
+# checkable everywhere
 set +e
 php bin/doctest --no-ansi --junit /tmp/doctest-junit.xml examples > /tmp/doctest-output.txt 2>&1
 status=$?
@@ -28,14 +36,6 @@ normalize() {
 }
 normalize < /tmp/doctest-output.txt > /tmp/doctest-normalized.txt
 
-if [ "${1:-}" = '--update' ]; then
-    cp /tmp/doctest-normalized.txt "$snapshot"
-    echo "updated $snapshot"
-else
-    diff -u "$snapshot" /tmp/doctest-normalized.txt
-fi
-
-# JUnit snapshot: time attributes vary run to run, blank them out;
 # stack traces embed the project root path and machine-dependent
 # frame arguments/line numbers, drop them
 normalize_junit() {
@@ -45,9 +45,54 @@ normalize_junit() {
 }
 normalize_junit < /tmp/doctest-junit.xml > /tmp/doctest-junit-normalized.xml
 
-if [ "${1:-}" = '--update' ]; then
+if $update; then
+    cp /tmp/doctest-normalized.txt "$snapshot"
+    echo "updated $snapshot"
     cp /tmp/doctest-junit-normalized.xml "$junit_snapshot"
     echo "updated $junit_snapshot"
 else
+    diff -u "$snapshot" /tmp/doctest-normalized.txt
     diff -u "$junit_snapshot" /tmp/doctest-junit-normalized.xml
+fi
+
+# coverage snapshot: only meaningful when pcov is available & its directory
+# covers the analyzed paths (both are PHP_INI_SYSTEM settings); the dedicated
+# run keeps a pcov-less environment from breaking the other snapshots
+pcov_ok() {
+    php -d pcov.enabled=1 -d pcov.directory="$PWD" -r 'exit(function_exists("pcov\\start") ? 0 : 1);' 2>/dev/null
+}
+
+if pcov_ok; then
+    set +e
+    php -d pcov.enabled=1 -d pcov.directory="$PWD" bin/doctest --no-ansi --coverage-clover /tmp/doctest-coverage.xml examples > /tmp/doctest-coverage-output.txt 2>&1
+    status=$?
+    set -e
+
+    # same 3 deliberate failures as the base run
+    if [ "$status" -ne 1 ]; then
+        echo "::error::doctest (coverage run) exited with $status, expected 1"
+        cat /tmp/doctest-coverage-output.txt
+        exit 1
+    fi
+
+    # blank generated/timestamp (they vary per run), make paths relative,
+    # drop crap (algorithm can differ across php-code-coverage majors)
+    normalize_coverage() {
+        sed -E -e 's/generated="[0-9]+"/generated=""/g' -e 's/timestamp="[0-9]+"/timestamp=""/g' \
+            -e "s|$PWD/||g" -e 's/ crap="[0-9]+(\.[0-9]+)?"/ crap=""/g'
+    }
+    normalize_coverage < /tmp/doctest-coverage.xml > /tmp/doctest-coverage-normalized.xml
+
+    if $update; then
+        cp /tmp/doctest-coverage-normalized.xml "$coverage_snapshot"
+        echo "updated $coverage_snapshot"
+    else
+        diff -u "$coverage_snapshot" /tmp/doctest-coverage-normalized.xml
+    fi
+else
+    if $update; then
+        echo "::warning::skipping coverage snapshot: pcov unavailable or misconfigured"
+    else
+        echo "skipping coverage snapshot: pcov unavailable or misconfigured"
+    fi
 fi

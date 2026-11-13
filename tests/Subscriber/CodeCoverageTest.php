@@ -42,8 +42,6 @@ final class CodeCoverageTest extends TestCase
 
         $cwd = \getcwd();
 
-        $cwd = \getcwd();
-
         if ($cwd === false) {
             static::markTestSkipped('could not determine current working directory');
         }
