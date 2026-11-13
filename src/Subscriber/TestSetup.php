@@ -8,6 +8,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Attributes;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\SetUp;
 
 final class TestSetup implements EventSubscriberInterface
 {
@@ -60,8 +61,14 @@ final class TestSetup implements EventSubscriberInterface
     {
         $setupClass = $attribute->newInstance()->setupClass;
 
-        // instantiating a user-provided setup class from an attribute: the class name is dynamic by design
-        // @mago-expect analysis:unknown-class-instantiation
-        return new $setupClass();
+        $reflection = new \ReflectionClass($setupClass);
+
+        if (!$reflection->implementsInterface(SetUp::class)) {
+            throw new \LogicException(
+                "{$setupClass} used in " . Attributes\ExamplesSetup::class . ' must implement ' . SetUp::class,
+            );
+        }
+
+        return $reflection->newInstance();
     }
 }

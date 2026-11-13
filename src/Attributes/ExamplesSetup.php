@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Attributes;
 
-#[\Attribute]
+use TH\DocTest\SetUp;
+
+/**
+ * @param class-string<SetUp> $setupClass
+ */
+#[\Attribute(\Attribute::IS_REPEATABLE)]
 final class ExamplesSetup
 {
+    /**
+     * @param class-string<SetUp> $setupClass
+     */
     public function __construct(
-        /** @var class-string */
         public readonly string $setupClass,
     ) {}
 }
