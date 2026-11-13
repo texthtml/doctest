@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest;
 
+use Composer\InstalledVersions;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input;
@@ -16,7 +17,7 @@ final class Application extends SingleCommandApplication
     protected function configure(): void
     {
         $this
-            ->setVersion('1.0.0')
+            ->setVersion(InstalledVersions::getPrettyVersion('texthtml/doctest') ?? 'dev')
             ->setHelp('Test code examples found in comments')
             ->addArgument(
                 'paths',

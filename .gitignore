@@ -2,4 +2,5 @@
 /vendor/
 /phpstan.neon
 /.phpunit.result.cache
+/.phpunit.cache
 /doctest.code-workspace

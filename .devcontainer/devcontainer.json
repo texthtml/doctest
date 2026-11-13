@@ -29,12 +29,11 @@
 		"britesnow.vscode-toggle-quotes",
 		"xdebug.php-debug",
 		"bmewburn.vscode-intelephense-client",
-		"ikappas.phpcs",
+		"Michael4d45.mago-vscode",
 		"ms-vscode.test-adapter-converter",
 		"hbenl.vscode-test-explorer",
 		"recca0120.vscode-phpunit",
-		"Kasik96.latte",
-		"getpsalm.psalm-vscode-plugin"
+		"Kasik96.latte"
 	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

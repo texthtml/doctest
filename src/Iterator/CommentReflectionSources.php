@@ -56,11 +56,6 @@ final class CommentReflectionSources implements \IteratorAggregate
         try {
             \ob_start();
             include_once $path;
-            $output = \ob_get_contents();
-
-            if ($output !== '') {
-                echo 'output', PHP_EOL;
-            }
 
             return null;
         } catch (\Throwable $th) {
