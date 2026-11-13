@@ -1,9 +1,25 @@
 # doctest PHP
 
+[![CI](https://github.com/texthtml/doctest/actions/workflows/test.yml/badge.svg)](https://github.com/texthtml/doctest/actions/workflows/test.yml)
+[![Packagist](https://img.shields.io/packagist/v/texthtml/doctest)](https://packagist.org/packages/texthtml/doctest)
+
 Test your docblock code examples.
 
 `doctest` looks for php examples in your functions, methods classes & interfaces
 comments and execute them to ensure they are correct.
+
+## Why?
+
+Documentation examples rot. The README or docblock snippet that showed how to
+use a function gets copied into the docs on day one, then the function changes
+and nobody notices the example is now wrong — readers copy it and it doesn't
+work.
+
+Because the example lives *next to the code it documents* and is *executed as
+part of your test suite*, `doctest` turns that rot into a test failure: change
+the behavior without updating the example, and CI goes red. This repository
+dogfoods it: [`examples/Ratio.php`](examples/Ratio.php)'s docblock examples run
+in CI.
 
 # How to write examples
 

@@ -45,6 +45,9 @@ jobs:
       - name: Run the unit tests
         run: vendor/bin/phpunit --testdox
 
+      - name: Run doctest on its own examples
+        run: php bin/doctest examples/Ratio.php
+
       - name: Run Mago
         run: |
           vendor/bin/mago format --check
