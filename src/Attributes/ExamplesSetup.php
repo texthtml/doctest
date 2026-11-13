@@ -6,9 +6,6 @@ namespace TH\DocTest\Attributes;
 
 use TH\DocTest\SetUp;
 
-/**
- * @param class-string<SetUp> $setupClass
- */
 #[\Attribute(\Attribute::IS_REPEATABLE)]
 final class ExamplesSetup
 {
