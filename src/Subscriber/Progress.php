@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
@@ -15,10 +17,8 @@ final class Progress implements EventSubscriberInterface
 {
     private OutputInterface&StyleInterface $output;
 
-    public function __construct(
-        InputInterface $input,
-        OutputInterface $output,
-    ) {
+    public function __construct(InputInterface $input, OutputInterface $output)
+    {
         $this->output = new SymfonyStyle($input, $output);
     }
 
@@ -28,8 +28,8 @@ final class Progress implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Event\AfterTestSuccess::class => "printSuccess",
-            Event\AfterTestFailure::class => "printFailure",
+            Event\AfterTestSuccess::class => 'printSuccess',
+            Event\AfterTestFailure::class => 'printFailure',
         ];
     }
 
@@ -53,15 +53,13 @@ final class Progress implements EventSubscriberInterface
 
         if ($test instanceof Example) {
             if ($this->output->isVerbose()) {
-                $error[] = "```" . PHP_EOL . $test->code . PHP_EOL . "```";
+                $error[] = '```' . PHP_EOL . $test->code . PHP_EOL . '```';
             }
 
             $verboseError = $this->output->isVeryVerbose();
         }
 
-        $error[] = $verboseError
-            ? $event->failure
-            : "Error: {$event->failure->getMessage()}";
+        $error[] = $verboseError ? $event->failure : "Error: {$event->failure->getMessage()}";
 
         $this->output->error($error);
     }
@@ -84,14 +82,23 @@ final class Progress implements EventSubscriberInterface
     {
         $file = $th->getFile();
 
-        if (\str_starts_with($file, \substr(__FILE__, 0, -23) . "TestCase/Example.php(")) {
+        if (\str_starts_with($file, \substr(__FILE__, 0, -23) . 'TestCase/Example.php(')) {
             yield $file => $th->getLine();
         }
 
         foreach ($th->getTrace() as $line) {
-            if (isset($line["line"], $line["class"], $line["file"]) && $line["class"] === Example::class) {
-                yield $line["file"] => $line["line"];
+            if (
+                !(
+                    \array_key_exists('line', $line)
+                    && \array_key_exists('class', $line)
+                    && \array_key_exists('file', $line)
+                    && $line['class'] === Example::class
+                )
+            ) {
+                continue;
             }
+
+            yield $line['file'] => $line['line'];
         }
     }
 }

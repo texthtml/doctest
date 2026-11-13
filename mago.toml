@@ -1,0 +1,21 @@
+#:schema https://json.schemastore.org/mago.json
+version = "1"
+php-version = "8.2"
+
+[source]
+paths = ["src", "tests", "bin"]
+includes = ["vendor"]
+excludes = ["tests/data/**"]
+
+[linter]
+integrations = ["symfony", "phpunit"]
+baseline = "lint-baseline.toml"
+
+[analyzer]
+baseline = "analysis-baseline.toml"
+
+[linter.rules]
+# executing code examples via `eval()` is the core of doctest
+no-eval = { enabled = false }
+# heuristic defect-proneness metric; too noisy for this codebase size
+kan-defect = { enabled = false }

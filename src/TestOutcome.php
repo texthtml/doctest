@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest;
 
@@ -19,8 +21,6 @@ enum TestOutcome
 
     public function and(self $right): self
     {
-        return $this === self::Success
-            ? $right
-            : $this;
+        return $this === self::Success ? $right : $this;
     }
 }

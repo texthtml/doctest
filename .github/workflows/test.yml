@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        php-versions: ['8.1', '8.2', '8.3', '8.4', '8.5']
+        php-versions: ['8.2', '8.3', '8.4', '8.5']
 
     steps:
       - uses: actions/checkout@v7
@@ -45,8 +45,10 @@ jobs:
       - name: Run the unit tests
         run: vendor/bin/phpunit --testdox
 
-      - name: Run linter
-        run: vendor/bin/phpcs -ps
-
-      - name: Run static analysis
-        run: vendor/bin/phpstan
+      - name: Run Mago
+        run: |
+          vendor/bin/mago format --check
+          vendor/bin/mago lint
+          vendor/bin/mago analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

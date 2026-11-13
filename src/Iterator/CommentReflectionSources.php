@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
@@ -16,8 +18,7 @@ final class CommentReflectionSources implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Traversable<int, \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction|TestCase\SourceError>
@@ -57,8 +58,8 @@ final class CommentReflectionSources implements \IteratorAggregate
             include_once $path;
             $output = \ob_get_contents();
 
-            if ($output !== "") {
-                echo "output", PHP_EOL;
+            if ($output !== '') {
+                echo 'output', PHP_EOL;
             }
 
             return null;
@@ -76,7 +77,7 @@ final class CommentReflectionSources implements \IteratorAggregate
         if ($resolvedPath === false) {
             return new TestCase\SourceError(
                 FileLocation::fromPath($path),
-                new \RuntimeException("Could not resolve path to a file to include: $path"),
+                new \RuntimeException("Could not resolve path to a file to include: {$path}"),
             );
         }
 
@@ -91,9 +92,11 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function declaredInFiles(\Traversable $sources, array $files): \Traversable
     {
         foreach ($sources as $commentReflectionSource) {
-            if (\in_array($commentReflectionSource->getFileName(), $files, true)) {
-                yield $commentReflectionSource;
+            if (!\in_array($commentReflectionSource->getFileName(), $files, true)) {
+                continue;
             }
+
+            yield $commentReflectionSource;
         }
     }
 
@@ -130,7 +133,7 @@ final class CommentReflectionSources implements \IteratorAggregate
      */
     private function functions(): \Traversable
     {
-        foreach (\get_defined_functions()["user"] as $functionName) {
+        foreach (\get_defined_functions()['user'] as $functionName) {
             try {
                 yield new \ReflectionFunction($functionName);
             } catch (ReflectionException) {

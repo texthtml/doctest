@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Event;
 
@@ -8,6 +10,5 @@ final class AfterTest
 {
     public function __construct(
         public readonly TestCase $test,
-    ) {
-    }
+    ) {}
 }

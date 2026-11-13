@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
@@ -15,10 +17,8 @@ final class Summary implements EventSubscriberInterface
     private int $numberOfSuccesses = 0;
     private int $numberOfFailures = 0;
 
-    public function __construct(
-        InputInterface $input,
-        OutputInterface $output,
-    ) {
+    public function __construct(InputInterface $input, OutputInterface $output)
+    {
         $this->style = new SymfonyStyle($input, $output);
     }
 
@@ -28,10 +28,10 @@ final class Summary implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Event\BeforeTestSuite::class => "initialize",
-            Event\AfterTestSuccess::class => "countSuccess",
-            Event\AfterTestFailure::class => "countFailure",
-            Event\AfterTestSuite::class => "printSummary",
+            Event\BeforeTestSuite::class => 'initialize',
+            Event\AfterTestSuccess::class => 'countSuccess',
+            Event\AfterTestFailure::class => 'countFailure',
+            Event\AfterTestSuite::class => 'printSummary',
         ];
     }
 

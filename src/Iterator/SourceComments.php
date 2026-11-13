@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
@@ -26,10 +28,7 @@ final class SourceComments implements Comments
             $comment = $commentReflectionSource->getDocComment();
 
             if ($comment !== false) {
-                yield new Comment(
-                    $comment,
-                    CodeLocation::fromReflection($commentReflectionSource, $comment),
-                );
+                yield new Comment($comment, CodeLocation::fromReflection($commentReflectionSource, $comment));
             }
         }
     }
