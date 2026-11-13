@@ -76,13 +76,13 @@ final class Files implements \IteratorAggregate
 
         $finder = new Finder();
 
-        // non-existent directory: nothing to iterate, skipping silently is intended
-        // @mago-expect lint:no-empty-catch-clause
         try {
             $finder->in($path);
 
             yield from $finder;
-        } catch (DirectoryNotFoundException) {
+        } catch (DirectoryNotFoundException $th) {
+            // the directory existed at the is_dir() check above: it was removed since, racing the iteration
+            \fwrite(\STDERR, "Warning: skipping {$path}: {$th->getMessage()}\n");
         }
     }
 }
