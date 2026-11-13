@@ -54,11 +54,6 @@ final class Application extends SingleCommandApplication
         #[Option('Write test results to a file in JUnit XML format')]
         ?string $junit = null,
     ): int {
-        // Symfony resolves the attribued parameters to the declared types, but the
-        // analyzer only sees `array` — map back to list<string> at the boundary
-        $paths = self::listOfStrings($paths);
-        $languages = self::listOfStrings($languages);
-
         $testSuite = TestSuite::fromPaths(
             $paths,
             $filter,
@@ -77,25 +72,6 @@ final class Application extends SingleCommandApplication
         }
 
         return $testSuite->run($bail ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
-    }
-
-    /**
-     * @param array<mixed> $value
-     *
-     * @return list<string>
-     */
-    private static function listOfStrings(array $value): array
-    {
-        $values = [];
-
-        /** @var mixed $item */
-        foreach ($value as $item) {
-            if (\is_string($item)) {
-                $values[] = $item;
-            }
-        }
-
-        return $values;
     }
 
     /**
