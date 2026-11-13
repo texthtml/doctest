@@ -89,13 +89,11 @@ final class CodeLocation implements Location
             $stripSrcDirPattern = self::stripSrcDirPattern();
         }
 
-        $relative = \preg_replace(pattern: $stripSrcDirPattern, replacement: '', subject: $path);
-
-        if ($relative === null) {
-            throw new \RuntimeException("Making path relative failed for: {$path}");
-        }
-
-        return $relative;
+        return (
+            \preg_replace(pattern: $stripSrcDirPattern, replacement: '', subject: $path) ?? throw new \RuntimeException(
+                "Making path relative failed for: {$path}",
+            )
+        );
     }
 
     private static function stripSrcDirPattern(): string

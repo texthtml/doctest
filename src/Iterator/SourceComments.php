@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\TestCase;
 
@@ -41,7 +40,7 @@ final class SourceComments implements Comments
     /**
      * @param array<string> $paths path to files and folders to look for PHP comments in
      */
-    public static function fromPaths(array $paths, LoggerInterface $logger = new NullLogger()): self
+    public static function fromPaths(array $paths, LoggerInterface $logger): self
     {
         return new self(new CommentReflectionSources($paths, $logger));
     }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Symfony\Component\Finder\Exception\DirectoryNotFoundException;
 use Symfony\Component\Finder\Finder;
 
@@ -19,7 +18,7 @@ final class Files implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
-        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**

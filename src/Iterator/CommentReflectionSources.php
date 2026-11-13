@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
-use ReflectionException;
 use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
 
@@ -20,7 +18,7 @@ final class CommentReflectionSources implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
-        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly LoggerInterface $logger,
     ) {}
 
     /**
@@ -133,15 +131,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function functions(): \Traversable
     {
         foreach (\get_defined_functions()['user'] as $functionName) {
-            try {
-                yield new \ReflectionFunction($functionName);
-            } catch (ReflectionException $th) {
-                // get_defined_functions() can race with the autoloader: the function may no longer exist
-                $this->logger->warning('Skipped unreflectable function {function}: {message}', [
-                    'function' => $functionName,
-                    'message' => $th->getMessage(),
-                ]);
-            }
+            yield new \ReflectionFunction($functionName);
         }
     }
 }

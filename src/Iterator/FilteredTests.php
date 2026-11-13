@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use TH\DocTest\TestCase;
 
 final class FilteredTests implements Tests
@@ -42,7 +41,7 @@ final class FilteredTests implements Tests
         array $paths,
         string $filter,
         ?array $acceptedLanguages,
-        LoggerInterface $logger = new NullLogger(),
+        LoggerInterface $logger,
     ): self {
         return self::filter(AllTests::fromPaths($paths, $acceptedLanguages, $logger), $filter);
     }

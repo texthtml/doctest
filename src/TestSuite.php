@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace TH\DocTest;
 
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Iterator\FilteredTests;
@@ -60,7 +59,7 @@ final class TestSuite
         array $paths,
         string $filter,
         ?array $acceptedLanguages,
-        LoggerInterface $logger = new NullLogger(),
+        LoggerInterface $logger,
     ): self {
         return new self(FilteredTests::fromPaths($paths, $filter, $acceptedLanguages, $logger));
     }
