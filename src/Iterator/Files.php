@@ -76,12 +76,12 @@ final class Files implements \IteratorAggregate
             return;
         }
 
-        $finder = new Finder();
+        // deterministic output requires deterministic file ordering: readdir order is
+        // filesystem-dependent, so tests must not depend on it
+        $finder = (new Finder())->in($path)->sortByName();
 
         try {
-            $finder->in($path);
-
-            yield from $finder;
+            yield from $finder->in($path);
         } catch (DirectoryNotFoundException $th) {
             // the directory existed at the is_dir() check above: it was removed since, racing the iteration
             $this->logger->warning('Skipped non-readable path {path}: {message}', [
