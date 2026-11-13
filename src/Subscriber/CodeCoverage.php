@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace TH\DocTest\Subscriber;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage as PhpCodeCoverage;
-use SebastianBergmann\CodeCoverage\Driver\Granularity;
 use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Exception as CodeCoverageException;
 use SebastianBergmann\CodeCoverage\Filter;
-use SebastianBergmann\CodeCoverage\Report\Facade as ReportFacade;
+use SebastianBergmann\CodeCoverage\Report\Clover;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Finder\Finder;
 use TH\DocTest\Event;
@@ -77,7 +76,7 @@ final class CodeCoverage implements EventSubscriberInterface
         }
 
         try {
-            $driver = (new Selector())->select($filter, Granularity::Line);
+            $driver = (new Selector())->forLineCoverage($filter);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException(
                 'No code coverage driver available: install & enable pcov (recommended) or xdebug',
@@ -102,7 +101,7 @@ final class CodeCoverage implements EventSubscriberInterface
         $coverage->stop(true);
 
         try {
-            ReportFacade::fromObject($coverage)->renderClover($this->filename);
+            (new Clover())->process($coverage, $this->filename);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException("Could not write code coverage to {$this->filename}", previous: $exception);
         } finally {
