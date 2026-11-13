@@ -44,7 +44,8 @@ final class TestSetupTest extends TestCase
 
         $code = <<<PHP
             return new \ReflectionFunction(
-                #[\TH\DocTest\Attributes\ExamplesSetup([new {$setup}('first'), new {$setup}('second')])]
+                #[\TH\DocTest\Attributes\ExamplesSetup(new {$setup}('first'))]
+                #[\TH\DocTest\Attributes\ExamplesSetup(new {$setup}('second'))]
                 #[\TH\DocTest\Attributes\ExamplesSetup(new {$setup}('third'))]
                 static function (): void {},
             );

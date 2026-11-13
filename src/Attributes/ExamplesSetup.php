@@ -6,9 +6,6 @@ namespace TH\DocTest\Attributes;
 
 use TH\DocTest\SetUp;
 
-/**
- * @phpstan-type Target \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction
- */
 #[\Attribute(\Attribute::TARGET_CLASS
 | \Attribute::TARGET_METHOD
 | \Attribute::TARGET_FUNCTION
@@ -16,10 +13,9 @@ use TH\DocTest\SetUp;
 final class ExamplesSetup
 {
     /**
-     * @param SetUp|non-empty-list<SetUp> $setups run in order before each example, freshly
-     *                                           instantiated each time the attribute is reflected
+     * @param SetUp $setup instantiated fresh before each example the attribute applies to
      */
     public function __construct(
-        public readonly array|SetUp $setups,
+        public readonly SetUp $setup,
     ) {}
 }

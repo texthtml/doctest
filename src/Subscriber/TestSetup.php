@@ -50,11 +50,7 @@ final class TestSetup implements EventSubscriberInterface
         $this->handles = [];
 
         foreach ($attributes as $attribute) {
-            $setups = $attribute->newInstance()->setups;
-
-            foreach (\is_array($setups) ? $setups : [$setups] as $setup) {
-                $this->handles[] = $setup;
-            }
+            $this->handles[] = $attribute->newInstance()->setup;
         }
     }
 
