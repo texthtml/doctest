@@ -19,6 +19,9 @@ final class TestSuite
         $this->eventDispatcher = new EventDispatcher();
     }
 
+    // bail is the documented CLI behavior (`--bail`): keeping the flag on the public entry point
+    // keeps the runner simple instead of exposing two near-identical run entry points
+    // @mago-expect lint:no-boolean-flag-parameter
     public function run(bool $bail): TestOutcome
     {
         $this->eventDispatcher->dispatch(new Event\BeforeTestSuite());

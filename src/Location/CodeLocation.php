@@ -7,6 +7,11 @@ namespace TH\DocTest\Location;
 final class CodeLocation implements Location
 {
     /**
+     * the six fields describe a doc-comment example's position precisely; splitting them into a
+     * smaller shape would move the verbosity, not remove it
+     *
+     * @mago-expect lint:excessive-parameter-list
+     *
      * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction $source
      */
     public function __construct(
@@ -62,39 +67,46 @@ final class CodeLocation implements Location
 
         $endLine = $source->getStartLine();
 
-        if ($endLine !== false) {
-            $endLine--;
-
-            $startLine = $endLine - \substr_count($comment, \PHP_EOL);
-        } else {
-            $startLine = null;
-            $endLine = null;
+        if ($endLine === false) {
+            return new self($source, $name, self::makePathRelative($source->getFileName()), null, null, 1);
         }
+
+        $endLine--;
+        $startLine = $endLine - \substr_count($comment, \PHP_EOL);
 
         return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
     }
 
     private static function makePathRelative(string|false $path): string
     {
-        static $stripSrcDirPattern;
+        static $stripSrcDirPattern = null;
 
         if ($path === false) {
             return '<Unknown file location>';
         }
 
-        $stripSrcDirPattern ??=
-            '/^'
-            . \preg_quote(
-                str: ($cwd = \getcwd()) !== false ? $cwd : throw new \RuntimeException('getwd failed'),
-                delimiter: '/',
-            )
-            . "(\/*)/";
+        if ($stripSrcDirPattern === null) {
+            $stripSrcDirPattern = self::stripSrcDirPattern();
+        }
 
-        return (
-            \preg_replace($stripSrcDirPattern, '', $path) ?? throw new \RuntimeException(
-                "Making path relative failed for : {$path}",
-            )
-        );
+        $relative = \preg_replace(pattern: $stripSrcDirPattern, replacement: '', subject: $path);
+
+        if ($relative === null) {
+            throw new \RuntimeException("Making path relative failed for: {$path}");
+        }
+
+        return $relative;
+    }
+
+    private static function stripSrcDirPattern(): string
+    {
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            throw new \RuntimeException('getcwd failed');
+        }
+
+        return '/^' . \preg_quote(str: $cwd, delimiter: '/') . "(\/*)/";
     }
 
     public function __toString(): string

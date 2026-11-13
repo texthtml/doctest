@@ -39,7 +39,8 @@ final class CommentReflectionSources implements \IteratorAggregate
             }
 
             $error = self::load($path, $originalPath);
-            include_once $files[] = $path;
+            $files[] = $path;
+            include_once $path;
 
             if ($error !== null) {
                 yield $error;
@@ -87,7 +88,7 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function declaredInFiles(\Traversable $sources, array $files): \Traversable
     {
         foreach ($sources as $commentReflectionSource) {
-            if (!\in_array($commentReflectionSource->getFileName(), $files, true)) {
+            if (!\in_array(needle: $commentReflectionSource->getFileName(), haystack: $files, strict: true)) {
                 continue;
             }
 
@@ -129,6 +130,8 @@ final class CommentReflectionSources implements \IteratorAggregate
     private function functions(): \Traversable
     {
         foreach (\get_defined_functions()['user'] as $functionName) {
+            // get_defined_functions() can race with the autoloader: the function may no longer exist, skipping is intended
+            // @mago-expect lint:no-empty-catch-clause
             try {
                 yield new \ReflectionFunction($functionName);
             } catch (ReflectionException) {

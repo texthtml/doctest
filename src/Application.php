@@ -54,8 +54,8 @@ final class Application extends SingleCommandApplication
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output): int
     {
         $testSuite = TestSuite::fromPaths(
-            $input->getArgument('paths'),
-            $input->getOption('filter'),
+            self::strings($input->getArgument('paths')),
+            self::string($input->getOption('filter')),
             $this->getLanguages($input),
         );
 
@@ -65,13 +65,53 @@ final class Application extends SingleCommandApplication
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 
-        $junit = $input->getOption('junit');
+        $junit = self::nullableString($input->getOption('junit'));
 
-        if (\is_string($junit) && $junit !== '') {
+        if ($junit !== null) {
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
         }
 
-        return $testSuite->run($input->getOption('bail') ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
+        return $testSuite->run(self::bool($input->getOption('bail')))->isSuccess()
+            ? Command::SUCCESS
+            : Command::FAILURE;
+    }
+
+    private static function string(mixed $value): string
+    {
+        return self::nullableString($value) ?? '';
+    }
+
+    private static function nullableString(mixed $value): ?string
+    {
+        return \is_string($value) && $value !== '' ? $value : null;
+    }
+
+    private static function bool(mixed $value): bool
+    {
+        return \is_bool($value) ? $value : false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function strings(mixed $value): array
+    {
+        if (!\is_array($value)) {
+            $value = $value === null ? [] : [$value];
+        }
+
+        $values = [];
+
+        /** @var mixed $item */
+        foreach ($value as $item) {
+            if (!\is_string($item)) {
+                continue;
+            }
+
+            $values[] = $item;
+        }
+
+        return $values;
     }
 
     /**
@@ -81,11 +121,9 @@ final class Application extends SingleCommandApplication
     {
         $languages = [];
 
-        foreach ($input->getOption('languages') as $lang) {
+        foreach (self::strings($input->getOption('languages')) as $lang) {
             if ($lang === '*') {
-                $languages = null;
-
-                break;
+                return null;
             }
 
             $languages[] = $lang;

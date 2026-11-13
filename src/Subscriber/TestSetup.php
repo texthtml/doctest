@@ -11,9 +11,6 @@ use TH\DocTest\Location\CodeLocation;
 
 final class TestSetup implements EventSubscriberInterface
 {
-    /** @var array<object> */
-    private array $handles = [];
-
     /**
      * @return array<string,string>
      */
@@ -42,13 +39,10 @@ final class TestSetup implements EventSubscriberInterface
             $attributes = \array_merge($this->attributes($location->source->getDeclaringClass()), $attributes);
         }
 
-        $this->handles = \array_map($this->setup(...), $attributes);
+        \array_map($this->setup(...), $attributes);
     }
 
-    public function afterTest(): void
-    {
-        $this->handles = [];
-    }
+    public function afterTest(): void {}
 
     /**
      * @param \ReflectionClass<object>|\ReflectionMethod|\ReflectionFunction $reflection
@@ -66,6 +60,8 @@ final class TestSetup implements EventSubscriberInterface
     {
         $setupClass = $attribute->newInstance()->setupClass;
 
+        // instantiating a user-provided setup class from an attribute: the class name is dynamic by design
+        // @mago-expect analysis:unknown-class-instantiation
         return new $setupClass();
     }
 }

@@ -36,7 +36,7 @@ final class TestExecutor implements EventSubscriberInterface
                 : self::assertThrows($event->test->eval(...), $expectedFailure);
         } finally {
             $output = \ob_get_clean();
-            \assert(\is_string($output), 'example messed up with output buffers');
+            \assert(\is_string($output), description: 'example messed up with output buffers');
 
             $lines = \array_map(\trim(...), \explode(PHP_EOL, $output));
             $output = \implode(PHP_EOL, \array_filter($lines, static fn(string $line): bool => $line !== ''));

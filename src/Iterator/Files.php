@@ -66,15 +66,23 @@ final class Files implements \IteratorAggregate
     {
         if (\is_file($path)) {
             yield new \SplFileInfo($path);
-        } elseif (\is_dir($path)) {
-            $finder = new Finder();
 
-            try {
-                $finder->in($path);
+            return;
+        }
 
-                yield from $finder;
-            } catch (DirectoryNotFoundException) {
-            }
+        if (!\is_dir($path)) {
+            return;
+        }
+
+        $finder = new Finder();
+
+        // non-existent directory: nothing to iterate, skipping silently is intended
+        // @mago-expect lint:no-empty-catch-clause
+        try {
+            $finder->in($path);
+
+            yield from $finder;
+        } catch (DirectoryNotFoundException) {
         }
     }
 }

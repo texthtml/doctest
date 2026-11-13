@@ -28,6 +28,9 @@ final class SourceComments implements Comments
             $comment = $commentReflectionSource->getDocComment();
 
             if ($comment !== false) {
+                // $commentReflectionSource is `ReflectionClass<object>|…`; the differing generic parameters
+                // are equivalent at runtime for the metadata extraction done here
+                // @mago-expect analysis:less-specific-nested-argument-type
                 yield new Comment($comment, CodeLocation::fromReflection($commentReflectionSource, $comment));
             }
         }

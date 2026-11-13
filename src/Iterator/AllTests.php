@@ -50,7 +50,13 @@ final class AllTests implements Tests
         $lines = new \ArrayIterator(\explode(PHP_EOL, $comment->text));
         $index = 1;
 
-        while ($example = $this->nextExample($lines, $comment->location, $index++)) {
+        while (true) {
+            $example = $this->nextExample($lines, $comment->location, $index++);
+
+            if ($example === null) {
+                break;
+            }
+
             yield $example;
         }
     }
@@ -87,7 +93,10 @@ final class AllTests implements Tests
 
             $length++;
 
-            $buffer[] = \preg_replace("/^\s*\*( ?)/", '', $line);
+            $replacement = \preg_replace(pattern: "/^\s*\*( ?)/", replacement: '', subject: $line);
+            \assert(\is_string($replacement), description: "Stripping leading asterisks failed for: {$line}");
+
+            $buffer[] = $replacement;
         }
 
         return null;
@@ -108,19 +117,21 @@ final class AllTests implements Tests
                 if ($this->endOfAFencedCodeBlock($line)) {
                     $insideAFencedCodeBlock = false;
                 }
-            } else {
-                $lang = $this->startOfAFencedCodeBlock($line);
 
-                if ($lang === false) {
-                    continue;
-                }
-
-                if ($this->isAcceptedLanguage($lang)) {
-                    return $lines->key();
-                }
-
-                $insideAFencedCodeBlock = true;
+                continue;
             }
+
+            $lang = $this->startOfAFencedCodeBlock($line);
+
+            if ($lang === false) {
+                continue;
+            }
+
+            if ($this->isAcceptedLanguage($lang)) {
+                return $lines->key();
+            }
+
+            $insideAFencedCodeBlock = true;
         }
 
         return null;
@@ -148,6 +159,6 @@ final class AllTests implements Tests
             return false;
         }
 
-        return \substr($line, 5);
+        return \substr(string: $line, offset: 5);
     }
 }

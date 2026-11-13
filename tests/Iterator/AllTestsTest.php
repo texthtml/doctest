@@ -16,7 +16,7 @@ use TH\DocTest\TestCase\Example;
 final class AllTestsTest extends TestCase
 {
     /**
-     * @return \Traversable<string,array{comment:string, expectedTests:list<string>}>
+     * @return \Traversable<string,array{comment:string, expectedTests:list<string>, acceptedLanguages?:list<string>}>
      */
     public static function commentsProvider(): \Traversable
     {
@@ -200,6 +200,8 @@ final class AllTestsTest extends TestCase
             {
                 static $thisClass = new \ReflectionClass(self::class);
 
+                // bare \ReflectionClass is invariant to mago's checker; the source is only used for metadata
+                // @mago-expect analysis:less-specific-nested-argument-type
                 return CodeLocation::fromReflection($thisClass, $comment);
             }
 

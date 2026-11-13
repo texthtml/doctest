@@ -49,17 +49,12 @@ final class Progress implements EventSubscriberInterface
 
         $error = [$location];
 
-        $verboseError = $this->output->isVerbose();
-
-        if ($test instanceof Example) {
-            if ($this->output->isVerbose()) {
-                $error[] = '```' . PHP_EOL . $test->code . PHP_EOL . '```';
-            }
-
-            $verboseError = $this->output->isVeryVerbose();
+        if ($test instanceof Example && $this->output->isVerbose()) {
+            $error[] = '```' . PHP_EOL . $test->code . PHP_EOL . '```';
         }
 
-        $error[] = $verboseError ? $event->failure : "Error: {$event->failure->getMessage()}";
+        $verbose = $test instanceof Example ? $this->output->isVeryVerbose() : $this->output->isVerbose();
+        $error[] = $verbose ? $event->failure : "Error: {$event->failure->getMessage()}";
 
         $this->output->error($error);
     }
@@ -86,19 +81,19 @@ final class Progress implements EventSubscriberInterface
             yield $file => $th->getLine();
         }
 
-        foreach ($th->getTrace() as $line) {
-            if (
-                !(
-                    \array_key_exists('line', $line)
-                    && \array_key_exists('class', $line)
-                    && \array_key_exists('file', $line)
-                    && $line['class'] === Example::class
-                )
-            ) {
+        /** @var list<array<string,mixed>> $trace */
+        $trace = $th->getTrace();
+
+        foreach ($trace as $frame) {
+            if (($frame['class'] ?? null) !== Example::class) {
                 continue;
             }
 
-            yield $line['file'] => $line['line'];
+            if (!\is_int($frame['line'] ?? null) || !\is_string($frame['file'] ?? null)) {
+                continue;
+            }
+
+            yield $frame['file'] => $frame['line'];
         }
     }
 }
