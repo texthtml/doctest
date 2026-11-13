@@ -23,23 +23,37 @@ final class CodeCoverageTest extends TestCase
     {
         $subscriber = new CodeCoverage(paths: [], filename: '/dev/null');
 
-        $this->expectException(\LogicException::class);
-        $this->expectExceptionMessage('Code coverage was never started');
-        $subscriber->write(new Event\AfterTestSuite(\TH\DocTest\TestOutcome::Success));
+        // expectExceptionMessage is deprecated in PHPUnit 13 (replaced by
+        // expectExceptionMessageIsOrContains, absent in 11/12): assert on the
+        // message directly instead
+        try {
+            $subscriber->write(new Event\AfterTestSuite(\TH\DocTest\TestOutcome::Success));
+            static::fail('expected LogicException');
+        } catch (\LogicException $exception) {
+            static::assertSame('Code coverage was never started', $exception->getMessage());
+        }
     }
 
     public function testCollectsCoverageOfEvaluatedCodeInTheAnalyzedPaths(): void
     {
         if (!\function_exists('\\pcov\\start')) {
-            self::markTestSkipped('pcov is not loaded');
+            static::markTestSkipped('pcov is not loaded');
         }
 
-        $cwd = \getcwd() ?: throw new \RuntimeException('could not determine current working directory');
-        $directory = \ini_get('pcov.directory') ?: $cwd . '/src';
+        $cwd = \getcwd();
+
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            static::markTestSkipped('could not determine current working directory');
+        }
+
+        $configured = \ini_get('pcov.directory');
+        $directory = $configured === false || $configured === '' ? $cwd . '/src' : $configured;
         $src = \realpath(__DIR__ . '/../../src');
 
         if ($src === false || !\str_starts_with($src, $directory)) {
-            self::markTestSkipped("pcov.directory ({$directory}) does not include the analyzed sources");
+            static::markTestSkipped('pcov.directory (' . $directory . ') does not include the analyzed sources');
         }
 
         $filename = \sys_get_temp_dir() . '/doctest-codecoverage-test.xml';
@@ -52,8 +66,12 @@ final class CodeCoverageTest extends TestCase
         // an eval()d function lives in no filter file: assert on the src coverage instead
         $subscriber->write(new Event\AfterTestSuite(\TH\DocTest\TestOutcome::Success));
 
-        $xml = \file_get_contents($filename) ?: throw new \RuntimeException("could not read {$filename}");
+        $xml = \file_get_contents($filename);
 
-        self::assertStringContainsString('TestSuite.php', $xml);
+        if ($xml === false) {
+            throw new \RuntimeException("could not read {$filename}");
+        }
+
+        static::assertStringContainsString('TestSuite.php', $xml);
     }
 }

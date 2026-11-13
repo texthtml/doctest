@@ -72,7 +72,7 @@ final class Application extends SingleCommandApplication
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
         }
 
-        if ($coverageClover !== null) {
+        if ($coverageClover !== null && $coverageClover !== '') {
             $testSuite->addSubscriber(new Subscriber\CodeCoverage($paths, $coverageClover));
         }
 

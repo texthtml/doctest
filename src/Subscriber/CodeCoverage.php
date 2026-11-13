@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace TH\DocTest\Subscriber;
 
 use SebastianBergmann\CodeCoverage\CodeCoverage as PhpCodeCoverage;
+use SebastianBergmann\CodeCoverage\Driver\Granularity;
 use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Exception as CodeCoverageException;
 use SebastianBergmann\CodeCoverage\Filter;
-use SebastianBergmann\CodeCoverage\Report\Clover;
+use SebastianBergmann\CodeCoverage\Report\Facade as ReportFacade;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Finder\Finder;
 use TH\DocTest\Event;
@@ -26,7 +27,8 @@ final class CodeCoverage implements EventSubscriberInterface
     private static ?PhpCodeCoverage $coverage = null;
 
     /**
-     * @param list<string> $paths paths the examples' code lives in: used as the
+     * @param non-empty-string $filename
+     * @param list<string>     $paths paths the examples' code lives in: used as the
      *                            coverage filter so runtime noise is not collected
      */
     public function __construct(
@@ -56,8 +58,14 @@ final class CodeCoverage implements EventSubscriberInterface
         // auto-detects the vendor directory of the entry script's cwd (see
         // krakjoe/pcov: defaults to ./src).
         if (\function_exists('pcov\start')) {
-            $cwd = \getcwd() ?: throw new \RuntimeException('could not determine current working directory');
-            $directory = \ini_get('pcov.directory') ?: $cwd . '/src';
+            $cwd = \getcwd();
+
+            if ($cwd === false) {
+                throw new \RuntimeException('could not determine current working directory');
+            }
+
+            $configured = \ini_get('pcov.directory');
+            $directory = $configured === false || $configured === '' ? $cwd . '/src' : $configured;
 
             if (!$this->covers($filter, $directory)) {
                 throw new \RuntimeException(
@@ -69,7 +77,7 @@ final class CodeCoverage implements EventSubscriberInterface
         }
 
         try {
-            $driver = (new Selector())->forLineCoverage($filter);
+            $driver = (new Selector())->select($filter, Granularity::Line);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException(
                 'No code coverage driver available: install & enable pcov (recommended) or xdebug',
@@ -91,15 +99,10 @@ final class CodeCoverage implements EventSubscriberInterface
         // no per-test status metadata: collecting driver-level data is enough for
         // the aggregate report, and keeps us decoupled from php-code-coverage's
         // TestStatus API, which moved between major versions
-        $coverage->stop(append: true);
+        $coverage->stop(true);
 
         try {
-            (new Clover())->process(
-                $coverage,
-                $this->filename !== ''
-                    ? $this->filename
-                    : throw new \RuntimeException('coverage filename must not be empty'),
-            );
+            ReportFacade::fromObject($coverage)->renderClover($this->filename);
         } catch (CodeCoverageException $exception) {
             throw new \RuntimeException("Could not write code coverage to {$this->filename}", previous: $exception);
         } finally {
