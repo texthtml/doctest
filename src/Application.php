@@ -30,6 +30,9 @@ final class Application extends SingleCommandApplication
      * move the verbosity while hiding the help text from the signature
      *
      * @mago-expect lint:excessive-parameter-list
+     *
+     * @param list<string> $paths
+     * @param list<string> $languages "*" to match any language, "" to match unspecified language
      */
     public function __invoke(
         Input\InputInterface $input,
