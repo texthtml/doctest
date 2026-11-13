@@ -46,7 +46,26 @@ jobs:
         run: vendor/bin/phpunit --testdox
 
       - name: Run doctest on its own examples
-        run: php bin/doctest examples/Ratio.php
+        run: |
+          php bin/doctest examples/Ratio.php
+
+          # factorial.php documents 3 deliberate failures (see its docblocks):
+          # assert the run fails, and fails for the documented reasons
+          if php bin/doctest examples/factorial.php > /tmp/doctest.log; then
+            echo "::error::expected factorial.php examples to fail, but they passed"
+            exit 1
+          fi
+          sed 's/\x1b\[[0-9;]*m//g' /tmp/doctest.log > /tmp/doctest-clean.log
+          for expected in \
+            'Expected no output. Got: "720"' \
+            'unexpected negative integer: -10' \
+            'Expected a value equal to 3628890. Got: 3628800'; do
+            if ! grep -qF "$expected" /tmp/doctest-clean.log; then
+              echo "::error::expected failure message not found: $expected"
+              grep -F 'Error:' /tmp/doctest-clean.log || true
+              exit 1
+            fi
+          done
 
       - name: Run Mago
         run: |
