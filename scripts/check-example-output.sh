@@ -36,9 +36,12 @@ else
 fi
 
 # JUnit snapshot: time attributes vary run to run, blank them out;
-# absolute paths in stack traces embed the project root, strip it
+# stack traces embed the project root path and machine-dependent
+# frame arguments/line numbers, drop them
 normalize_junit() {
-    sed -E -e 's/ time="[0-9]+(\.[0-9]+)?"/ time=""/g' -e "s|$PWD/||g"
+    sed -E -e 's/ time="[0-9]+(\.[0-9]+)?"/ time=""/g' -e "s|$PWD/||g" \
+        -e 's/^([[:space:]]*)#[0-9]+ \{main\}<\/failure>$/\1<\/failure>/' \
+        | sed -E -e '/^Stack trace:$/d' -e '/^#[0-9]+ /d'
 }
 normalize_junit < /tmp/doctest-junit.xml > /tmp/doctest-junit-normalized.xml
 
