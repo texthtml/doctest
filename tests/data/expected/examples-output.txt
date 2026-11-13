@@ -8,9 +8,9 @@
 
  [OK] Ratio::formatPercentage(…)#1 (examples/Ratio.php:41-42)
 
- [OK] Examples\hello#1 (examples/Setup.php:36-38)
+ [OK] Examples\hello#1 (examples/Setup.php:35-37)
 
- [OK] Examples\world#1 (examples/Setup.php:46-51)
+ [OK] Examples\world#1 (examples/Setup.php:45-50)
 
  [OK] factorial#1 (examples/factorial.php:7-10)
 

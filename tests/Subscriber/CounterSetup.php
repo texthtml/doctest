@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Tests\Subscriber;
 
-use TH\DocTest\SetUp;
-
-final class CounterSetup implements SetUp
+final class CounterSetup
 {
     /** @var list<string> */
     public static array $instantiations = [];

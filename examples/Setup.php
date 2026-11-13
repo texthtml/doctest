@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace Examples;
 
 use TH\DocTest\Attributes\ExamplesSetup;
-use TH\DocTest\SetUp;
 
 /**
  * A setup keeps its state reachable from examples through a static accessor:
  * the attribute's `new` expression runs before every example below, so
  * `Recorder::$current` always returns this example's own fresh instance.
  */
-final class Recorder implements SetUp
+final class Recorder
 {
     public static self $current;
 
