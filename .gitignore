@@ -4,3 +4,4 @@
 /.phpunit.result.cache
 /.phpunit.cache
 /doctest.code-workspace
+composer-run.phar
