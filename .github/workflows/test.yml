@@ -50,17 +50,20 @@ jobs:
         if: matrix.php-versions == '8.5'
         run: vendor/bin/phpunit --coverage-clover=coverage.xml
 
+      - name: Run doctest on its own examples
+        run: scripts/check-example-output.sh
+
+      # unit-test coverage (coverage.xml) + examples coverage produced by
+      # doctest itself (/tmp/doctest-coverage.xml, written unmodified by
+      # check-example-output.sh — the normalized copy is only for the snapshot)
       - name: Upload coverage to Codecov (PHP 8.5)
         if: matrix.php-versions == '8.5'
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage.xml
+          files: coverage.xml,/tmp/doctest-coverage.xml
           flags: php-${{ matrix.php-versions }}
           fail_ci_if_error: true
-
-      - name: Run doctest on its own examples
-        run: scripts/check-example-output.sh
 
       - name: Run Mago
         run: |
