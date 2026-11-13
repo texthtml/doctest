@@ -9,7 +9,6 @@ use SebastianBergmann\CodeCoverage\Driver\Selector;
 use SebastianBergmann\CodeCoverage\Exception as CodeCoverageException;
 use SebastianBergmann\CodeCoverage\Filter;
 use SebastianBergmann\CodeCoverage\Report\Clover;
-use SebastianBergmann\CodeCoverage\Test\TestStatus\TestStatus;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Finder\Finder;
 use TH\DocTest\Event;
@@ -89,10 +88,10 @@ final class CodeCoverage implements EventSubscriberInterface
     {
         $coverage = self::$coverage ?? throw new \LogicException('Code coverage was never started');
 
-        $coverage->stop(
-            append: true,
-            status: $event->outcome->isSuccess() ? TestStatus::success() : TestStatus::failure(),
-        );
+        // no per-test status metadata: collecting driver-level data is enough for
+        // the aggregate report, and keeps us decoupled from php-code-coverage's
+        // TestStatus API, which moved between major versions
+        $coverage->stop(append: true);
 
         try {
             (new Clover())->process(
