@@ -6,59 +6,49 @@ namespace TH\DocTest;
 
 use Composer\InstalledVersions;
 use Psr\Log\LogLevel;
+use Symfony\Component\Console\Attribute\Argument;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Attribute\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output;
 use Symfony\Component\Console\SingleCommandApplication;
 
-#[AsCommand('doctest')]
+#[AsCommand('doctest', help: 'Test code examples found in comments')]
 final class Application extends SingleCommandApplication
 {
-    protected function configure(): void
+    public function __construct()
     {
-        $this
-            ->setVersion(InstalledVersions::getPrettyVersion('texthtml/doctest') ?? 'dev')
-            ->setHelp('Test code examples found in comments')
-            ->addArgument(
-                'paths',
-                Input\InputArgument::IS_ARRAY,
-                'Folders and files to look for PHP code examples in',
-                default: ['src'],
-            )
-            ->addOption('bail', 'b', Input\InputOption::VALUE_NEGATABLE, 'Stop after the first failure', default: false)
-            ->addOption(
-                'filter',
-                'f',
-                Input\InputOption::VALUE_REQUIRED,
-                'Ony run code blocks whose names match the filter',
-                default: '',
-            )
-            ->addOption(
-                'languages',
-                'l',
-                Input\InputOption::VALUE_REQUIRED | Input\InputOption::VALUE_IS_ARRAY,
-                'Ony run code blocks whose language match.'
-                . PHP_EOL
-                . '("*" to match any language, "" to match unspecified language)',
-                default: ['php'],
-            )
-            ->addOption(
-                'junit',
-                null,
-                Input\InputOption::VALUE_REQUIRED,
-                'Write test results to a file in JUnit XML format',
-                default: null,
-            );
+        parent::__construct();
+
+        $this->setVersion(InstalledVersions::getPrettyVersion('texthtml/doctest') ?? 'dev');
     }
 
-    protected function execute(Input\InputInterface $input, Output\OutputInterface $output): int
-    {
+    public function __invoke(
+        Input\InputInterface $input,
+        Output\OutputInterface $output,
+        #[Argument('Folders and files to look for PHP code examples in')]
+        array $paths = ['src'],
+        // nullable so Symfony derives VALUE_NEGATABLE and --no-bail exists
+        #[Option('Stop after the first failure', shortcut: 'b')]
+        ?bool $bail = null,
+        #[Option('Ony run code blocks whose names match the filter', shortcut: 'f')]
+        string $filter = '',
+        #[Option(
+            'Ony run code blocks whose language match.'
+            . PHP_EOL
+            . '("*" to match any language, "" to match unspecified language)',
+            shortcut: 'l',
+        )]
+        array $languages = ['php'],
+        #[Option('Write test results to a file in JUnit XML format')]
+        ?string $junit = null,
+    ): int {
         $testSuite = TestSuite::fromPaths(
-            self::strings($input->getArgument('paths')),
-            self::string($input->getOption('filter')),
-            $this->getLanguages($input),
+            $paths,
+            $filter,
+            $this->acceptedLanguages($languages),
             new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]),
         );
 
@@ -68,70 +58,30 @@ final class Application extends SingleCommandApplication
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 
-        $junit = self::nullableString($input->getOption('junit'));
-
         if ($junit !== null) {
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
         }
 
-        return $testSuite->run(self::bool($input->getOption('bail')))->isSuccess()
-            ? Command::SUCCESS
-            : Command::FAILURE;
-    }
-
-    private static function string(mixed $value): string
-    {
-        return self::nullableString($value) ?? '';
-    }
-
-    private static function nullableString(mixed $value): ?string
-    {
-        return \is_string($value) && $value !== '' ? $value : null;
-    }
-
-    private static function bool(mixed $value): bool
-    {
-        return \is_bool($value) ? $value : false;
+        return $testSuite->run($bail ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
-     * @return list<string>
+     * @param list<string> $languages "*" to match any language, "" to match unspecified language
+     *
+     * @return list<string>|null null to match any language
      */
-    private static function strings(mixed $value): array
+    private function acceptedLanguages(array $languages): ?array
     {
-        if (!\is_array($value)) {
-            $value = $value === null ? [] : [$value];
-        }
+        $accepted = [];
 
-        $values = [];
-
-        /** @var mixed $item */
-        foreach ($value as $item) {
-            if (!\is_string($item)) {
-                continue;
-            }
-
-            $values[] = $item;
-        }
-
-        return $values;
-    }
-
-    /**
-     * @return list<string>|null
-     */
-    private function getLanguages(Input\InputInterface $input): ?array
-    {
-        $languages = [];
-
-        foreach (self::strings($input->getOption('languages')) as $lang) {
+        foreach ($languages as $lang) {
             if ($lang === '*') {
                 return null;
             }
 
-            $languages[] = $lang;
+            $accepted[] = $lang;
         }
 
-        return $languages;
+        return $accepted;
     }
 }
