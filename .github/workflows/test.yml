@@ -25,6 +25,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-versions }}
+          coverage: ${{ matrix.php-versions == '8.5' && 'pcov' || 'none' }}
           ini-values:  zend.assertions=1,  assert.exception=1
 
       - name: Validate composer.json and composer.lock
@@ -44,6 +45,19 @@ jobs:
 
       - name: Run the unit tests
         run: vendor/bin/phpunit --testdox
+
+      - name: Run the unit tests with coverage (PHP 8.5)
+        if: matrix.php-versions == '8.5'
+        run: vendor/bin/phpunit --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov (PHP 8.5)
+        if: matrix.php-versions == '8.5'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          flags: php-${{ matrix.php-versions }}
+          fail_ci_if_error: true
 
       - name: Run doctest on its own examples
         run: scripts/check-example-output.sh
