@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="doctest" tests="12" failures="3" time="">
+<testsuites name="doctest" tests="14" failures="3" time="">
   <testsuite name="examples/Ratio.php" tests="5" failures="0" time="">
     <testcase name="Ratio#1" classname="examples/Ratio.php" time="" />
     <testcase name="Ratio#2" classname="examples/Ratio.php" time="" />
@@ -24,5 +24,9 @@
       <failure type="Webmozart\Assert\InvalidArgumentException" message="Expected a value equal to 3628890. Got: 3628800">Webmozart\Assert\InvalidArgumentException: Expected a value equal to 3628890. Got: 3628800 in vendor/webmozart/assert/src/Assert.php:2640
 </failure>
     </testcase>
+  </testsuite>
+  <testsuite name="examples/Setup.php" tests="2" failures="0" time="">
+    <testcase name="Examples\hello#1" classname="examples/Setup.php" time="" />
+    <testcase name="Examples\world#1" classname="examples/Setup.php" time="" />
   </testsuite>
 </testsuites>

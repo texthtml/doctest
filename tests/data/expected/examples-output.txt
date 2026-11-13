@@ -28,7 +28,11 @@
 
          Error: Expected a value equal to 3628890. Got: 3628800
 
- [OK] Number of success: 9
+ [OK] Examples\hello#1 (examples/Setup.php:36-38)
+
+ [OK] Examples\world#1 (examples/Setup.php:46-51)
+
+ [OK] Number of success: 11
 
  [ERROR] Number of failures: 3
 
