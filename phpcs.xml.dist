@@ -16,6 +16,7 @@
 
     <rule ref="SlevomatCodingStandard">
         <exclude name="SlevomatCodingStandard.Arrays.AlphabeticallySortedByKeys" />
+        <exclude name="SlevomatCodingStandard.Classes.ReadonlyClass.ClassCanBeReadonly" />
         <exclude name="SlevomatCodingStandard.Classes.DisallowConstructorPropertyPromotion" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSelfReference" />
         <exclude name="SlevomatCodingStandard.Classes.RequireSingleLineMethodSignature" />
