@@ -76,9 +76,23 @@ final class Application extends SingleCommandApplication
         return $testSuite->run($bail ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
     }
 
+    /**
+     * @param array<mixed> $value
+     *
+     * @return list<string>
+     */
     private static function listOfStrings(array $value): array
     {
-        return array_values(array_filter($value, static fn($item): bool => \is_string($item)));
+        $values = [];
+
+        foreach ($value as $item) {
+            /** @var mixed $item */
+            if (\is_string($item)) {
+                $values[] = $item;
+            }
+        }
+
+        return $values;
     }
 
     /**
