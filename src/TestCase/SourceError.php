@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\TestCase;
 
@@ -29,6 +31,6 @@ final class SourceError implements TestCase
 
     public function expectedOutput(): string
     {
-        return "";
+        return '';
     }
 }

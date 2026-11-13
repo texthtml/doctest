@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\TestCase;
 
@@ -44,7 +46,7 @@ final class Example implements TestCase
             \preg_match("/\/\/\s*@prints\s*(?<text>[^\s].*)$/", $line, $matches);
 
             if ($matches !== []) {
-                $expectedOutput[] = $matches["text"];
+                $expectedOutput[] = $matches['text'];
             }
         }
 
@@ -55,7 +57,7 @@ final class Example implements TestCase
     {
         $location = $this->location;
         $source = $location->source;
-        $extraNamespacePart = "";
+        $extraNamespacePart = '';
 
         if ($source instanceof \ReflectionMethod) {
             $extraNamespacePart = "\\{$source->getName()}";
@@ -66,12 +68,10 @@ final class Example implements TestCase
             "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index};",
         ];
 
-        $fqcn = $source instanceof \ReflectionFunctionAbstract
-            ? $source->getNamespaceName()
-            : $source->getName();
+        $fqcn = $source instanceof \ReflectionFunctionAbstract ? $source->getNamespaceName() : $source->getName();
 
-        if ($fqcn !== "") {
-            $prefixes[] = "use $fqcn;";
+        if ($fqcn !== '') {
+            $prefixes[] = "use {$fqcn};";
         }
 
         return \implode(separator: '', array: $prefixes);
@@ -85,11 +85,11 @@ final class Example implements TestCase
             return null;
         }
 
-        if (!\is_a($matches["class"], \Throwable::class, allow_string: true)) {
+        if (!\is_a($matches['class'], \Throwable::class, allow_string: true)) {
             throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
         }
 
-        return new ExpectedFailure($matches["class"], $matches["message"]);
+        return new ExpectedFailure($matches['class'], $matches['message']);
     }
 
     /**
@@ -97,9 +97,8 @@ final class Example implements TestCase
      */
     public static function __callStatic(string $name, array $arguments): void
     {
-        $name = \preg_replace("/^assert/", "", $name);
+        $name = \preg_replace('/^assert/', '', $name);
 
-        // @phpstan-ignore-next-line Variable static method call on Webmozart\Assert\Assert.
         Assert::$name(...$arguments);
     }
 }

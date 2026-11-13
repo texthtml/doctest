@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Attributes;
 
@@ -8,6 +10,5 @@ final class ExamplesSetup
     public function __construct(
         /** @var class-string */
         public readonly string $setupClass,
-    ) {
-    }
+    ) {}
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
@@ -15,7 +17,7 @@ final class TestExecutor implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Event\ExecuteTest::class => "execute",
+            Event\ExecuteTest::class => 'execute',
         ];
     }
 
@@ -34,18 +36,16 @@ final class TestExecutor implements EventSubscriberInterface
                 : self::assertThrows($event->test->eval(...), $expectedFailure);
         } finally {
             $output = \ob_get_clean();
-            \assert(\is_string($output), "example messed up with output buffers");
+            \assert(\is_string($output), 'example messed up with output buffers');
 
             $lines = \array_map(\trim(...), \explode(PHP_EOL, $output));
-            $output = \implode(PHP_EOL, \array_filter($lines, static fn (string $line): bool => $line !== ""));
+            $output = \implode(PHP_EOL, \array_filter($lines, static fn(string $line): bool => $line !== ''));
 
             $expectedOutput = $event->test->expectedOutput();
             Assert::same(
                 $output,
                 $expectedOutput,
-                $expectedOutput === ""
-                    ? "Expected no output. Got: %s"
-                    : "Expected output to be %2\$s. Got: %s",
+                $expectedOutput === '' ? 'Expected no output. Got: %s' : "Expected output to be %2\$s. Got: %s",
             );
         }
     }
@@ -59,7 +59,7 @@ final class TestExecutor implements EventSubscriberInterface
         try {
             $callable();
         } catch (\Throwable $actual) {
-            if (!($actual instanceof $expectedFailure->class)) {
+            if (!$actual instanceof $expectedFailure->class) {
                 $actual = $actual::class;
 
                 throw new \InvalidArgumentException(

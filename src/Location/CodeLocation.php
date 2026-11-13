@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Location;
 
@@ -14,8 +16,7 @@ final class CodeLocation implements Location
         public readonly ?int $startLine,
         public readonly ?int $endLine,
         public readonly int $index,
-    ) {
-    }
+    ) {}
 
     public function startingAt(int $offset): self
     {
@@ -56,27 +57,21 @@ final class CodeLocation implements Location
         $name = $source->getName();
 
         if ($source instanceof \ReflectionMethod) {
-            $name = "{$source->getDeclaringClass()->getName()}::$name(…)";
+            $name = "{$source->getDeclaringClass()->getName()}::{$name}(…)";
         }
 
         $endLine = $source->getStartLine();
 
         if ($endLine !== false) {
             $endLine--;
-            $endLine = $endLine;
+
             $startLine = $endLine - \substr_count($comment, \PHP_EOL);
         } else {
-            $startLine = $endLine = null;
+            $startLine = null;
+            $endLine = null;
         }
 
-        return new self(
-            $source,
-            $name,
-            self::makePathRelative($source->getFileName()),
-            $startLine,
-            $endLine,
-            1,
-        );
+        return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
     }
 
     private static function makePathRelative(string|false $path): string
@@ -84,21 +79,22 @@ final class CodeLocation implements Location
         static $stripSrcDirPattern;
 
         if ($path === false) {
-            return "<Unknown file location>";
+            return '<Unknown file location>';
         }
 
         $stripSrcDirPattern ??=
-            "/^" .
-            \preg_quote(
-                str: ($cwd = \getcwd()) !== false
-                    ? $cwd
-                    : throw new \RuntimeException("getwd failed"),
-                delimiter: "/",
-            ) .
-            "(\/*)/";
+            '/^'
+            . \preg_quote(
+                str: ($cwd = \getcwd()) !== false ? $cwd : throw new \RuntimeException('getwd failed'),
+                delimiter: '/',
+            )
+            . "(\/*)/";
 
-        return \preg_replace($stripSrcDirPattern, "", $path) ??
-            throw new \RuntimeException("Making path relative failed for : $path");
+        return (
+            \preg_replace($stripSrcDirPattern, '', $path) ?? throw new \RuntimeException(
+                "Making path relative failed for : {$path}",
+            )
+        );
     }
 
     public function __toString(): string
@@ -113,6 +109,6 @@ final class CodeLocation implements Location
             }
         }
 
-        return "{$this->name}#{$this->index} ($suffix)";
+        return "{$this->name}#{$this->index} ({$suffix})";
     }
 }

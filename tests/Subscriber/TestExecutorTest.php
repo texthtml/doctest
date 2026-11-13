@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Tests\Subscriber;
 
@@ -27,7 +29,7 @@ final class TestExecutorTest extends TestCase
         $index = 1;
 
         foreach (self::codeBlocs() as $path => $example) {
-            ["code" => $code, "failure" => $failure] = self::loadExample($example);
+            ['code' => $code, 'failure' => $failure] = self::loadExample($example);
 
             $location = new CodeLocation(
                 new ReflectionClass(self::class),
@@ -39,7 +41,7 @@ final class TestExecutorTest extends TestCase
             );
 
             $realpath = \realpath($path);
-            \assert(\is_string($realpath), "Getting realpath of $path failed");
+            \assert(\is_string($realpath), "Getting realpath of {$path} failed");
 
             yield $realpath => [new Example($code, $location), $failure];
         }
@@ -58,9 +60,9 @@ final class TestExecutorTest extends TestCase
     public function testCodeBlocs(Example $example, ?array $failure): void
     {
         if ($failure !== null) {
-            $this->expectException($failure["class"]);
-            $message = \preg_quote($failure["message"], "/");
-            $this->expectExceptionMessageMatches("/^$message$/");
+            $this->expectException($failure['class']);
+            $message = \preg_quote($failure['message'], '/');
+            $this->expectExceptionMessageMatches("/^{$message}$/");
         }
 
         $this->testExecutor->execute(new ExecuteTest($example));
@@ -76,8 +78,8 @@ final class TestExecutorTest extends TestCase
     {
         return (new Finder())
             ->files()
-            ->in(__DIR__ . "/../data/code-blocs")
-            ->name("*.php");
+            ->in(__DIR__ . '/../data/code-blocs')
+            ->name('*.php');
     }
 
     /**
@@ -88,25 +90,25 @@ final class TestExecutorTest extends TestCase
         $code = \file_get_contents($example->getPathname());
         \assert(\is_string($code), "Getting content from file {$example->getPathname()} failed");
 
-        $code = \preg_replace("/^<\?php/", "", $code);
-        \assert(\is_string($code), "Something wrong happened");
+        $code = \preg_replace("/^<\?php/", '', $code);
+        \assert(\is_string($code), 'Something wrong happened');
         $failure = null;
 
         \preg_match("/^( *)\/\/(?<comment>.*)/", $code, $matches);
 
         if ($matches !== []) {
-            \preg_match("/(?<class>[^ ]+) (?<message>.+)/", $matches["comment"], $matches);
+            \preg_match('/(?<class>[^ ]+) (?<message>.+)/', $matches['comment'], $matches);
 
             if ($matches !== []) {
                 \assert(
-                    \is_subclass_of($matches["class"], \Throwable::class),
-                    "{$matches["class"]} is not a Throwable",
+                    \is_subclass_of($matches['class'], \Throwable::class),
+                    "{$matches['class']} is not a Throwable",
                 );
 
-                $failure = ["class" => $matches["class"], "message" => $matches["message"]];
+                $failure = ['class' => $matches['class'], 'message' => $matches['message']];
             }
         }
 
-        return ["code" => $code, "failure" => $failure];
+        return ['code' => $code, 'failure' => $failure];
     }
 }

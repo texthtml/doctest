@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Tests\Iterator;
 
@@ -15,18 +17,17 @@ final class AllTestsTest extends TestCase
 {
     /**
      * @return \Traversable<string,array{comment:string, expectedTests:list<string>}>
-     * phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
      */
     public static function commentsProvider(): \Traversable
     {
-        yield "Empty comment" => [
-            "comment" => "\/** */",
-            "expectedTests" => [],
+        yield 'Empty comment' => [
+            'comment' => "\/** */",
+            'expectedTests' => [],
         ];
 
-        yield "Comment with a code bloc" => [
-            "comment" => "This is a comment",
-            "expectedTests" => [],
+        yield 'Comment with a code bloc' => [
+            'comment' => 'This is a comment',
+            'expectedTests' => [],
         ];
 
         $comment = <<<'COMMENT'
@@ -37,12 +38,12 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with a PHP code bloc" => [
-            "comment" => $comment,
-            "expectedTests" => [
+        yield 'Comment with a PHP code bloc' => [
+            'comment' => $comment,
+            'expectedTests' => [
                 <<<'PHP'
-                echo "Hello World!";
-                PHP,
+                    echo "Hello World!";
+                    PHP,
             ],
         ];
 
@@ -54,9 +55,9 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with a JS code bloc" => [
-            "comment" => $comment,
-            "expectedTests" => [],
+        yield 'Comment with a JS code bloc' => [
+            'comment' => $comment,
+            'expectedTests' => [],
         ];
 
         $comment = <<<'COMMENT'
@@ -67,19 +68,19 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with a non specified code bloc, when accepted" => [
-            "comment" => $comment,
-            "expectedTests" => [
+        yield 'Comment with a non specified code bloc, when accepted' => [
+            'comment' => $comment,
+            'expectedTests' => [
                 <<<'JS'
-                console.log("Hello World!")
-                JS,
+                    console.log("Hello World!")
+                    JS,
             ],
-            "acceptedLanguages" => [""],
+            'acceptedLanguages' => [''],
         ];
 
-        yield "Comment with a non specified code bloc, when not accepted" => [
-            "comment" => $comment,
-            "expectedTests" => [],
+        yield 'Comment with a non specified code bloc, when not accepted' => [
+            'comment' => $comment,
+            'expectedTests' => [],
         ];
 
         $comment = <<<'COMMENT'
@@ -91,13 +92,13 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with a multi line PHP code bloc" => [
-            "comment" => $comment,
-            "expectedTests" => [
+        yield 'Comment with a multi line PHP code bloc' => [
+            'comment' => $comment,
+            'expectedTests' => [
                 <<<'PHP'
-                echo "Hello ";
-                echo "World!";
-                PHP,
+                    echo "Hello ";
+                    echo "World!";
+                    PHP,
             ],
         ];
 
@@ -116,16 +117,16 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with multiple PHP code blocs" => [
-            "comment" => $comment,
-            "expectedTests" => [
+        yield 'Comment with multiple PHP code blocs' => [
+            'comment' => $comment,
+            'expectedTests' => [
                 <<<'PHP'
-                echo "Hello World!";
-                PHP,
+                    echo "Hello World!";
+                    PHP,
                 <<<'PHP'
-                echo "Hello ";
-                echo "World!";
-                PHP,
+                    echo "Hello ";
+                    echo "World!";
+                    PHP,
             ],
         ];
 
@@ -150,12 +151,12 @@ final class AllTestsTest extends TestCase
             */
             COMMENT;
 
-        yield "Comment with multiple PHP/JS code blocs" => [
-            "comment" => $comment,
-            "expectedTests" => [
+        yield 'Comment with multiple PHP/JS code blocs' => [
+            'comment' => $comment,
+            'expectedTests' => [
                 <<<'PHP'
-                echo "Hello World!";
-                PHP,
+                    echo "Hello World!";
+                    PHP,
             ],
         ];
     }
@@ -164,35 +165,32 @@ final class AllTestsTest extends TestCase
      * @param list<string> $expectedTests
      * @param list<string>|null $acceptedLanguages
      */
-    #[DataProvider("commentsProvider")]
+    #[DataProvider('commentsProvider')]
     public function testFindingCodeBlocInComments(
         string $comment,
         array $expectedTests,
-        ?array $acceptedLanguages = ["php"],
+        ?array $acceptedLanguages = ['php'],
     ): void {
-        $tests = new AllTests(
-            self::comments($comment),
-            $acceptedLanguages,
-        );
+        $tests = new AllTests(self::comments($comment), $acceptedLanguages);
 
         $count = 0;
 
         foreach ($tests as $test) {
-            Assert::assertArrayHasKey($count, $expectedTests, "Test #$count was not expected");
+            Assert::assertArrayHasKey($count, $expectedTests, "Test #{$count} was not expected");
             Assert::assertInstanceOf(Example::class, $test);
-            Assert::assertEquals($expectedTests[$count], $test->code, "Test #$count doesn't match the expected one");
+            Assert::assertEquals($expectedTests[$count], $test->code, "Test #{$count} doesn't match the expected one");
 
             $count++;
         }
 
         $expectedTestsLeft = \count($expectedTests) - $count;
 
-        Assert::assertSame($expectedTestsLeft, 0, "$expectedTestsLeft more test(s) expected");
+        Assert::assertSame($expectedTestsLeft, 0, "{$expectedTestsLeft} more test(s) expected");
     }
 
     private static function comments(string ...$comments): Comments
     {
-        return new class ($comments) implements Comments {
+        return new class($comments) implements Comments {
             public function __construct(
                 /** @var array<string> */
                 private readonly array $comments,

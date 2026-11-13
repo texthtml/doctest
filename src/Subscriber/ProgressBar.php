@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
@@ -13,19 +15,17 @@ final class ProgressBar implements EventSubscriberInterface
 {
     private HelperProgressBar $progressBar;
 
-    public function __construct(
-        InputInterface $input,
-        OutputInterface $output,
-    ) {
+    public function __construct(InputInterface $input, OutputInterface $output)
+    {
         $io = new SymfonyStyle($input, $output);
         $this->progressBar = $io->createProgressBar();
 
-        $sourceFormat = $this->progressBar::FORMAT_NORMAL . "_nomax";
-        $format = "doctest_$sourceFormat";
+        $sourceFormat = $this->progressBar::FORMAT_NORMAL . '_nomax';
+        $format = "doctest_{$sourceFormat}";
 
         HelperProgressBar::setFormatDefinition(
             $format,
-            $this->progressBar::getFormatDefinition($sourceFormat) . " %message%",
+            $this->progressBar::getFormatDefinition($sourceFormat) . ' %message%',
         );
 
         $this->progressBar->setFormat($format);
@@ -37,16 +37,16 @@ final class ProgressBar implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Event\BeforeTestSuite::class => "initialize",
-            Event\BeforeTest::class => "advance",
-            Event\AfterTest::class => "clear",
-            Event\AfterTestSuite::class => "clear",
+            Event\BeforeTestSuite::class => 'initialize',
+            Event\BeforeTest::class => 'advance',
+            Event\AfterTest::class => 'clear',
+            Event\AfterTestSuite::class => 'clear',
         ];
     }
 
     public function initialize(): void
     {
-        $this->progressBar->setMessage("");
+        $this->progressBar->setMessage('');
         $this->progressBar->start();
     }
 

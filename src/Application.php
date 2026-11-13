@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest;
 
@@ -8,44 +10,44 @@ use Symfony\Component\Console\Input;
 use Symfony\Component\Console\Output;
 use Symfony\Component\Console\SingleCommandApplication;
 
-#[AsCommand("doctest")]
+#[AsCommand('doctest')]
 final class Application extends SingleCommandApplication
 {
-    // phpcs:disable SlevomatCodingStandard.Functions.FunctionLength.FunctionLength
     protected function configure(): void
     {
         $this
-            ->setVersion("1.0.0")
-            ->setHelp("Test code examples found in comments")
+            ->setVersion('1.0.0')
+            ->setHelp('Test code examples found in comments')
             ->addArgument(
-                "paths",
+                'paths',
                 Input\InputArgument::IS_ARRAY,
-                "Folders and files to look for PHP code examples in",
-                default: ["src"],
+                'Folders and files to look for PHP code examples in',
+                default: ['src'],
             )
-            ->addOption("bail", "b", Input\InputOption::VALUE_NEGATABLE, "Stop after the first failure", default: false)
+            ->addOption('bail', 'b', Input\InputOption::VALUE_NEGATABLE, 'Stop after the first failure', default: false)
             ->addOption(
-                "filter",
-                "f",
+                'filter',
+                'f',
                 Input\InputOption::VALUE_REQUIRED,
-                "Ony run code blocks whose names match the filter",
-                default: "",
+                'Ony run code blocks whose names match the filter',
+                default: '',
             )
             ->addOption(
-                "languages",
-                "l",
+                'languages',
+                'l',
                 Input\InputOption::VALUE_REQUIRED | Input\InputOption::VALUE_IS_ARRAY,
-                "Ony run code blocks whose language match." . PHP_EOL
-                    . "(\"*\" to match any language, \"\" to match unspecified language)",
-                default: ["php"],
+                'Ony run code blocks whose language match.'
+                . PHP_EOL
+                . '("*" to match any language, "" to match unspecified language)',
+                default: ['php'],
             );
     }
 
     protected function execute(Input\InputInterface $input, Output\OutputInterface $output): int
     {
         $testSuite = TestSuite::fromPaths(
-            $input->getArgument("paths"),
-            $input->getOption("filter"),
+            $input->getArgument('paths'),
+            $input->getOption('filter'),
             $this->getLanguages($input),
         );
 
@@ -55,9 +57,7 @@ final class Application extends SingleCommandApplication
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 
-        return $testSuite->run($input->getOption("bail") ?? false)->isSuccess()
-            ? Command::SUCCESS
-            : Command::FAILURE;
+        return $testSuite->run($input->getOption('bail') ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
@@ -67,7 +67,7 @@ final class Application extends SingleCommandApplication
     {
         $languages = [];
 
-        foreach ($input->getOption("languages") as $lang) {
+        foreach ($input->getOption('languages') as $lang) {
             if ($lang === '*') {
                 $languages = null;
 

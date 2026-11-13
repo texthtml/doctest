@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
@@ -35,22 +37,16 @@ final class AllTests implements Tests
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
      * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
      */
-    public static function fromPaths(
-        array $paths,
-        ?array $acceptedLanguages,
-    ): self {
-        return new self(
-            SourceComments::fromPaths($paths),
-            $acceptedLanguages,
-        );
+    public static function fromPaths(array $paths, ?array $acceptedLanguages): self
+    {
+        return new self(SourceComments::fromPaths($paths), $acceptedLanguages);
     }
 
     /**
      * @return \Traversable<TestCase>
      */
-    private function iterateComment(
-        Comment $comment,
-    ): \Traversable {
+    private function iterateComment(Comment $comment): \Traversable
+    {
         $lines = new \ArrayIterator(\explode(PHP_EOL, $comment->text));
         $index = 1;
 
@@ -62,30 +58,22 @@ final class AllTests implements Tests
     /**
      * @param \ArrayIterator<int,string> $lines
      */
-    private function nextExample(
-        \ArrayIterator $lines,
-        CodeLocation $location,
-        int $index,
-    ): ?TestCase\Example {
+    private function nextExample(\ArrayIterator $lines, CodeLocation $location, int $index): ?TestCase\Example
+    {
         $codeblockStartedAt = $this->findFencedPHPCodeBlockStart($lines);
 
         if ($codeblockStartedAt === null) {
             return null;
         }
 
-        return $this->readExample(
-            $lines,
-            $location->startingAt($codeblockStartedAt)->withIndex($index),
-        );
+        return $this->readExample($lines, $location->startingAt($codeblockStartedAt)->withIndex($index));
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
      */
-    private function readExample(
-        \ArrayIterator $lines,
-        CodeLocation $location,
-    ): ?TestCase\Example {
+    private function readExample(\ArrayIterator $lines, CodeLocation $location): ?TestCase\Example
+    {
         $buffer = [];
         $length = 0;
 
@@ -94,15 +82,12 @@ final class AllTests implements Tests
             $lines->next();
 
             if ($this->endOfAFencedCodeBlock($line)) {
-                return new TestCase\Example(
-                    \implode(PHP_EOL, $buffer),
-                    $location->ofLength($length),
-                );
+                return new TestCase\Example(\implode(PHP_EOL, $buffer), $location->ofLength($length));
             }
 
             $length++;
 
-            $buffer[] = \preg_replace("/^\s*\*( ?)/", "", $line);
+            $buffer[] = \preg_replace("/^\s*\*( ?)/", '', $line);
         }
 
         return null;
@@ -110,7 +95,6 @@ final class AllTests implements Tests
 
     /**
      * @param \ArrayIterator<int,string> $lines
-     * phpcs:disable SlevomatCodingStandard.Complexity.Cognitive.ComplexityTooHigh
      */
     private function findFencedPHPCodeBlockStart(\ArrayIterator $lines): ?int
     {
@@ -153,14 +137,14 @@ final class AllTests implements Tests
 
     private function endOfAFencedCodeBlock(string $line): bool
     {
-        return \ltrim($line) === "* ```";
+        return \ltrim($line) === '* ```';
     }
 
     private function startOfAFencedCodeBlock(string $line): false|string
     {
         $line = \trim($line);
 
-        if (!\str_starts_with($line, "* ```")) {
+        if (!\str_starts_with($line, '* ```')) {
             return false;
         }
 

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Iterator;
 
@@ -15,8 +17,7 @@ final class Files implements \IteratorAggregate
      */
     public function __construct(
         private array $paths,
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Traversable<\SplFileInfo>
@@ -24,9 +25,11 @@ final class Files implements \IteratorAggregate
     public function getIterator(): \Traversable
     {
         foreach ($this->iteratePaths() as $file) {
-            if ($file->getExtension() === "php") {
-                yield $file;
+            if ($file->getExtension() !== 'php') {
+                continue;
             }
+
+            yield $file;
         }
     }
 

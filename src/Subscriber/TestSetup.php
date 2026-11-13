@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
@@ -10,7 +12,6 @@ use TH\DocTest\Location\CodeLocation;
 final class TestSetup implements EventSubscriberInterface
 {
     /** @var array<object> */
-    // @phpstan-ignore-next-line Property TH\DocTest\Subscriber\TestSetup::$handles is never read, only written.
     private array $handles = [];
 
     /**
@@ -19,8 +20,8 @@ final class TestSetup implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            Event\BeforeTest::class => "beforeTest",
-            Event\AfterTest::class => "afterTest",
+            Event\BeforeTest::class => 'beforeTest',
+            Event\AfterTest::class => 'afterTest',
         ];
     }
 
@@ -38,10 +39,7 @@ final class TestSetup implements EventSubscriberInterface
         );
 
         if ($location->source instanceof \ReflectionMethod) {
-            $attributes = \array_merge(
-                $this->attributes($location->source->getDeclaringClass()),
-                $attributes,
-            );
+            $attributes = \array_merge($this->attributes($location->source->getDeclaringClass()), $attributes);
         }
 
         $this->handles = \array_map($this->setup(...), $attributes);
