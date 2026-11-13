@@ -124,5 +124,3 @@ GitLab or GitHub test reporting:
 ```sh
 ./bin/doctest --junit report.xml src/
 ```
-
-# TODO
