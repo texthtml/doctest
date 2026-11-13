@@ -23,11 +23,9 @@ final class ProgressBar implements EventSubscriberInterface
         $sourceFormat = $this->progressBar::FORMAT_NORMAL . '_nomax';
         $format = "doctest_{$sourceFormat}";
 
-        $sourceDefinition = $this->progressBar::getFormatDefinition($sourceFormat);
-
-        if ($sourceDefinition === null) {
-            throw new \LogicException("Unknown progress bar format: {$sourceFormat}");
-        }
+        $sourceDefinition = $this->progressBar::getFormatDefinition($sourceFormat) ?? throw new \LogicException(
+            "Unknown progress bar format: {$sourceFormat}",
+        );
 
         HelperProgressBar::setFormatDefinition($format, "{$sourceDefinition} %message%");
 
