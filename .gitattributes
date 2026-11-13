@@ -1,0 +1,13 @@
+* text=auto
+
+/.devcontainer/ export-ignore
+/.docker/ export-ignore
+/.github/ export-ignore
+/.phpactor.json export-ignore
+/.vscode/ export-ignore
+/analysis-baseline.toml export-ignore
+/examples/ export-ignore
+/lint-baseline.toml export-ignore
+/mago.toml export-ignore
+/phpunit.xml.dist export-ignore
+/tests/ export-ignore

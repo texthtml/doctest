@@ -82,7 +82,7 @@ final class Progress implements EventSubscriberInterface
     {
         $file = $th->getFile();
 
-        if (\str_starts_with($file, \substr(__FILE__, 0, -23) . 'TestCase/Example.php(')) {
+        if (\str_starts_with($file, \dirname(__DIR__) . '/TestCase/Example.php(')) {
             yield $file => $th->getLine();
         }
 
