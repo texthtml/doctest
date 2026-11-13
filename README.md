@@ -118,6 +118,9 @@ $ ./bin/doctest examples/factorial.php
  [ERROR] Number of failures: 3
 ```
 
-# TODO
+Pass `--junit <file>` to also write the results as JUnit XML, consumable by
+GitLab or GitHub test reporting:
 
-* Junit output
+```sh
+./bin/doctest --junit report.xml src/
+```

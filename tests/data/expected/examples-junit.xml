@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="doctest" tests="12" failures="3" time="">
+  <testsuite name="examples/Ratio.php" tests="5" failures="0" time="">
+    <testcase name="Ratio#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio#2" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::__construct(…)#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::fromPercentage(…)#1" classname="examples/Ratio.php" time="" />
+    <testcase name="Ratio::formatPercentage(…)#1" classname="examples/Ratio.php" time="" />
+  </testsuite>
+  <testsuite name="examples/factorial.php" tests="7" failures="3" time="">
+    <testcase name="factorial#1" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#2" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#3" classname="examples/factorial.php" time="">
+      <failure type="Webmozart\Assert\InvalidArgumentException" message="Expected no output. Got: &quot;720&quot;">Webmozart\Assert\InvalidArgumentException: Expected no output. Got: &quot;720&quot; in vendor/webmozart/assert/src/Assert.php:2640
+</failure>
+    </testcase>
+    <testcase name="factorial#4" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#5" classname="examples/factorial.php" time="">
+      <failure type="InvalidArgumentException" message="unexpected negative integer: -10">InvalidArgumentException: unexpected negative integer: -10 in examples/factorial.php:53
+</failure>
+    </testcase>
+    <testcase name="factorial#6" classname="examples/factorial.php" time="" />
+    <testcase name="factorial#7" classname="examples/factorial.php" time="">
+      <failure type="Webmozart\Assert\InvalidArgumentException" message="Expected a value equal to 3628890. Got: 3628800">Webmozart\Assert\InvalidArgumentException: Expected a value equal to 3628890. Got: 3628800 in vendor/webmozart/assert/src/Assert.php:2640
+</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

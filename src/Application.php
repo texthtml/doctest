@@ -41,6 +41,13 @@ final class Application extends SingleCommandApplication
                 . PHP_EOL
                 . '("*" to match any language, "" to match unspecified language)',
                 default: ['php'],
+            )
+            ->addOption(
+                'junit',
+                null,
+                Input\InputOption::VALUE_REQUIRED,
+                'Write test results to a file in JUnit XML format',
+                default: null,
             );
     }
 
@@ -57,6 +64,12 @@ final class Application extends SingleCommandApplication
         $testSuite->addSubscriber(new Subscriber\TestSetup());
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
+
+        $junit = $input->getOption('junit');
+
+        if (\is_string($junit) && $junit !== '') {
+            $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
+        }
 
         return $testSuite->run($input->getOption('bail') ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
     }
