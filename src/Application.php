@@ -85,8 +85,8 @@ final class Application extends SingleCommandApplication
     {
         $values = [];
 
+        /** @var mixed $item */
         foreach ($value as $item) {
-            /** @var mixed $item */
             if (\is_string($item)) {
                 $values[] = $item;
             }
