@@ -39,9 +39,8 @@ final class Application extends SingleCommandApplication
         Output\OutputInterface $output,
         #[Argument('Folders and files to look for PHP code examples in')]
         array $paths = ['src'],
-        // nullable so Symfony derives VALUE_NEGATABLE and --no-bail exists
         #[Option('Stop after the first failure', shortcut: 'b')]
-        ?bool $bail = null,
+        bool $bail = false,
         #[Option('Ony run code blocks whose names match the filter', shortcut: 'f')]
         string $filter = '',
         #[Option(
@@ -71,7 +70,7 @@ final class Application extends SingleCommandApplication
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
         }
 
-        return $testSuite->run($bail ?? false)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
+        return $testSuite->run($bail)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
     }
 
     /**
