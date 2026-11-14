@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TH\DocTest\TestCase;
 
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
 use Webmozart\Assert\Assert;
 
@@ -57,26 +58,46 @@ final class Example implements TestCase
 
     private function header(): string
     {
-        $location = $this->location;
-        $source = $location->source;
-        $extraNamespacePart = '';
-
-        if ($source instanceof \ReflectionMethod) {
-            $extraNamespacePart = "\\{$source->getName()}";
-            $source = $source->getDeclaringClass();
-        }
+        [$runtimeNamespace, $useTarget] = $this->runtimeNamespaceAndUseTarget();
 
         $prefixes = [
-            "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index};",
+            "namespace {$runtimeNamespace}\\Example{$this->location->index};",
         ];
 
-        $fqcn = $source instanceof \ReflectionFunctionAbstract ? $source->getNamespaceName() : $source->getName();
-
-        if ($fqcn !== '') {
-            $prefixes[] = "use {$fqcn};";
+        if ($useTarget !== '') {
+            $prefixes[] = "use {$useTarget};";
         }
 
         return \implode(separator: '', array: $prefixes);
+    }
+
+    /**
+     * the generated namespace segments off the declaring symbol (class for
+     * methods, bare name for class-likes), and the `use` target is the
+     * declaring class / the function itself — mirroring what reflection
+     * exposes, so examples resolve the analyzed code's names unqualified
+     *
+     * @return array{string, string}
+     */
+    private function runtimeNamespaceAndUseTarget(): array
+    {
+        $source = $this->location->source;
+
+        if ($source instanceof SymbolSource) {
+            $extraNamespacePart = $source->isMethod() ? "\\{$source->ownerShort}" : '';
+
+            return ["TH\\Doctest\\Runtime\\{$source->ownerShort}{$extraNamespacePart}", $source->useTarget];
+        }
+
+        $extraNamespacePart = $source instanceof \ReflectionMethod ? "\\{$source->getName()}" : '';
+
+        if ($source instanceof \ReflectionMethod) {
+            $source = $source->getDeclaringClass();
+        }
+
+        $useTarget = $source instanceof \ReflectionFunctionAbstract ? $source->getNamespaceName() : $source->getName();
+
+        return ["TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}", $useTarget];
     }
 
     private static function expectedFailureFromLine(string $line): ?ExpectedFailure

@@ -11,11 +11,12 @@ final class CodeLocation implements Location
      * smaller shape would move the verbosity, not remove it
      *
      * @mago-expect lint:excessive-parameter-list
-     *
-     * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction $source
      */
     public function __construct(
-        public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
+        /**
+         * @var \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction|SymbolSource
+         */
+        public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction|SymbolSource $source,
         public readonly string $name,
         public readonly string $path,
         public readonly ?int $startLine,
@@ -75,6 +76,31 @@ final class CodeLocation implements Location
         $startLine = $endLine - \substr_count($comment, \PHP_EOL);
 
         return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
+    }
+
+    public static function fromSymbol(SymbolSource $source, string $comment): self
+    {
+        $endLine = $source->docEndLine ?? 1;
+        $startLine = $endLine - \substr_count($comment, \PHP_EOL);
+
+        return new self($source, $source->name, self::relative($source->path), $startLine, $endLine, 1);
+    }
+
+    private static function relative(string $path): string
+    {
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            return $path;
+        }
+
+        return (
+            \preg_replace(
+                pattern: '/^' . \preg_quote(str: $cwd, delimiter: '/') . '\/?/',
+                replacement: '',
+                subject: $path,
+            ) ?? $path
+        );
     }
 
     private static function makePathRelative(string|false $path): string

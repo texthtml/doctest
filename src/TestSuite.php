@@ -7,7 +7,11 @@ namespace TH\DocTest;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use TH\DocTest\Iterator\AllTests;
 use TH\DocTest\Iterator\FilteredTests;
+use TH\DocTest\Iterator\LazyLoadedTests;
+use TH\DocTest\Iterator\SourceComments;
+use TH\DocTest\Iterator\StaticComments;
 use TH\DocTest\Iterator\Tests;
 
 final class TestSuite
@@ -60,8 +64,19 @@ final class TestSuite
         string $filter,
         ?array $acceptedLanguages,
         LoggerInterface $logger,
+        bool $staticScan = false,
     ): self {
-        return new self(FilteredTests::fromPaths($paths, $filter, $acceptedLanguages, $logger));
+        $comments = $staticScan
+            ? StaticComments::fromPaths($paths, $logger)
+            : SourceComments::fromPaths($paths, $logger);
+
+        $tests = AllTests::from($comments, $acceptedLanguages);
+
+        if ($staticScan) {
+            $tests = new LazyLoadedTests($tests, $logger);
+        }
+
+        return new self(FilteredTests::filter($tests, $filter));
     }
 
     private function runTest(TestCase $test): TestOutcome

@@ -10,11 +10,13 @@ namespace TH\DocTest\Attributes;
 | \Attribute::IS_REPEATABLE)]
 final class ExamplesSetup
 {
-    /**
-     * @param object $setup instantiated fresh before each example the attribute applies
-     *                      to, and released after it
-     */
     public function __construct(
+        /**
+         * instantiated fresh before each example the attribute applies to, and
+         * released after it
+         *
+         * @var object
+         */
         public readonly object $setup,
     ) {}
 }

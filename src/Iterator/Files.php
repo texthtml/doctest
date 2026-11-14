@@ -13,10 +13,12 @@ use Symfony\Component\Finder\Finder;
  */
 final class Files implements \IteratorAggregate
 {
-    /**
-     * @param array<string> $paths paths to PHP files & folders to look for PHP files in
-     */
     public function __construct(
+        /**
+         * paths to PHP files & folders to look for PHP files in
+         *
+         * @var array<string>
+         */
         private array $paths,
         private readonly LoggerInterface $logger,
     ) {}
@@ -81,7 +83,7 @@ final class Files implements \IteratorAggregate
         $finder = (new Finder())->in($path)->sortByName();
 
         try {
-            yield from $finder->in($path);
+            yield from $finder;
         } catch (DirectoryNotFoundException $th) {
             // the directory existed at the is_dir() check above: it was removed since, racing the iteration
             $this->logger->warning('Skipped non-readable path {path}: {message}', [
