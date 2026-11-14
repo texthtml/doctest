@@ -24,14 +24,8 @@ final class StaticComments implements Comments
     {
         foreach ($this->sources as $source) {
             $comment = $source->docComment;
-            $endLine = $source->docEndLine ?? 1;
 
-            yield new Comment($comment, CodeLocation::fromSymbol(
-                $source,
-                $comment,
-                self::relative($source->path),
-                $endLine,
-            ));
+            yield new Comment($comment, CodeLocation::fromSymbol($source, $comment));
         }
     }
 
@@ -41,22 +35,5 @@ final class StaticComments implements Comments
     public static function fromPaths(array $paths, LoggerInterface $logger): self
     {
         return new self(new StaticCommentSources($paths, $logger));
-    }
-
-    private static function relative(string $path): string
-    {
-        $cwd = \getcwd();
-
-        if ($cwd === false) {
-            return $path;
-        }
-
-        return (
-            \preg_replace(
-                pattern: '/^' . \preg_quote(str: $cwd, delimiter: '/') . '\/?/',
-                replacement: '',
-                subject: $path,
-            ) ?? $path
-        );
     }
 }

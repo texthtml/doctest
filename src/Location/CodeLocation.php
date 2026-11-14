@@ -77,15 +77,29 @@ final class CodeLocation implements Location
         return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
     }
 
-    /**
-     * @param int $endLine last line of the doc comment (its `/**` line)
-     * @param string $relativePath already-relative path of the file the symbol was scanned from
-     */
-    public static function fromSymbol(SymbolSource $source, string $comment, string $relativePath, int $endLine): self
+    public static function fromSymbol(SymbolSource $source, string $comment): self
     {
+        $endLine = $source->docEndLine ?? 1;
         $startLine = $endLine - \substr_count($comment, \PHP_EOL);
 
-        return new self($source, $source->name, $relativePath, $startLine, $endLine, 1);
+        return new self($source, $source->name, self::relative($source->path), $startLine, $endLine, 1);
+    }
+
+    private static function relative(string $path): string
+    {
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            return $path;
+        }
+
+        return (
+            \preg_replace(
+                pattern: '/^' . \preg_quote(str: $cwd, delimiter: '/') . '\/?/',
+                replacement: '',
+                subject: $path,
+            ) ?? $path
+        );
     }
 
     private static function makePathRelative(string|false $path): string

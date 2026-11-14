@@ -39,12 +39,7 @@ final class SourceComments implements Comments
             yield new Comment(
                 $comment,
                 $source instanceof SymbolSource
-                    ? CodeLocation::fromSymbol(
-                        $source,
-                        $comment,
-                        self::relative($source->path),
-                        $source->docEndLine ?? 1,
-                    )
+                    ? CodeLocation::fromSymbol($source, $comment)
                     : CodeLocation::fromReflection($source, $comment),
             );
         }
@@ -56,22 +51,5 @@ final class SourceComments implements Comments
     public static function fromPaths(array $paths, LoggerInterface $logger): self
     {
         return new self(new CommentReflectionSources($paths, $logger));
-    }
-
-    private static function relative(string $path): string
-    {
-        $cwd = \getcwd();
-
-        if ($cwd === false) {
-            return $path;
-        }
-
-        return (
-            \preg_replace(
-                pattern: '/^' . \preg_quote(str: $cwd, delimiter: '/') . '\/?/',
-                replacement: '',
-                subject: $path,
-            ) ?? $path
-        );
     }
 }
