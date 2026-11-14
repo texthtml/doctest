@@ -6,6 +6,7 @@ namespace TH\DocTest\Tests\Subscriber;
 
 use TH\DocTest\Setup\AfterExample;
 use TH\DocTest\Setup\BeforeExample;
+use TH\DocTest\Setup\EndOfTest;
 
 final class HookedSetup implements BeforeExample, AfterExample
 {
@@ -44,5 +45,22 @@ final class ThrowingAfterExample implements AfterExample
         self::$calls[] = 'after';
 
         throw new \LogicException('cleanup must not mask the example outcome');
+    }
+}
+
+final class EndOfTestSetup implements EndOfTest
+{
+    /** @var list<string> */
+    public static array $observations = [];
+
+    /** set by the example code itself, lets the hook probe the example's locals */
+    public static ?\WeakReference $probe = null;
+
+    public function endOfTest(): void
+    {
+        self::$observations[] =
+            self::$probe !== null && self::$probe->get() !== null
+                ? 'example variable still alive'
+                : 'example variable gone';
     }
 }

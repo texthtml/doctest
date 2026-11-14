@@ -11,6 +11,8 @@ use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\Setup\AfterExample;
 use TH\DocTest\Setup\BeforeExample;
+use TH\DocTest\Setup\EndOfTest;
+use TH\DocTest\Setup\EndOfTestHooks;
 
 final class TestSetup implements EventSubscriberInterface
 {
@@ -50,6 +52,7 @@ final class TestSetup implements EventSubscriberInterface
                 $this->handles[] = $this->instantiate($expression);
             }
 
+            $this->registerEndOfTestHooks();
             $this->notifyBeforeExample();
 
             return;
@@ -68,13 +71,14 @@ final class TestSetup implements EventSubscriberInterface
             $this->handles[] = $attribute->newInstance()->setup;
         }
 
+        $this->registerEndOfTestHooks();
         $this->notifyBeforeExample();
     }
 
     public function afterTest(): void
     {
         $this->notifyAfterExample();
-
+        EndOfTestHooks::$hooks = [];
         $this->handles = [];
     }
 
@@ -92,6 +96,21 @@ final class TestSetup implements EventSubscriberInterface
         foreach ($this->handles as $handle) {
             if ($handle instanceof BeforeExample) {
                 $handle->beforeExample();
+            }
+        }
+    }
+
+    /**
+     * EndOfTest hooks must run inside the example's scope (see the interface's
+     * doc): the eval'd code reaches them through this static registry
+     */
+    private function registerEndOfTestHooks(): void
+    {
+        EndOfTestHooks::$hooks = [];
+
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof EndOfTest) {
+                EndOfTestHooks::$hooks[] = $handle->endOfTest(...);
             }
         }
     }

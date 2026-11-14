@@ -23,7 +23,23 @@ final class Example implements TestCase
 
     public function eval(): void
     {
-        eval($this->header() . $this->code);
+        eval($this->header() . $this->code . $this->endOfTestCalls());
+    }
+
+    /**
+     * {@see \TH\DocTest\Setup\EndOfTest} hooks run inside the example's scope
+     * (while its variables are alive), so they are appended to the eval'd code
+     * itself: the registry is filled by the TestSetup subscriber just before
+     */
+    private function endOfTestCalls(): string
+    {
+        $calls = '';
+
+        foreach (\array_keys(\TH\DocTest\Setup\EndOfTestHooks::$hooks) as $index) {
+            $calls .= "\TH\DocTest\Setup\EndOfTestHooks::invoke({$index});";
+        }
+
+        return $calls === '' ? '' : PHP_EOL . $calls;
     }
 
     public function expectedFailure(): ?ExpectedFailure

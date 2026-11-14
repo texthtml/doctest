@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\Subscriber\TestExecutor;
 use TH\DocTest\Subscriber\TestSetup;
 use TH\DocTest\TestCase\Example;
 
@@ -18,6 +19,9 @@ final class TestSetupTest extends TestCase
         CounterSetup::$instantiations = [];
         HookedSetup::$calls = [];
         ThrowingAfterExample::$calls = [];
+        EndOfTestSetup::$observations = [];
+        EndOfTestSetup::$probe = null;
+        \TH\DocTest\Setup\EndOfTestHooks::$hooks = [];
     }
 
     public function testSetupsAreInstantiatedFreshForEachExampleWithTheirOwnArguments(): void
@@ -81,6 +85,44 @@ final class TestSetupTest extends TestCase
         static::assertSame(['construct', 'after'], ThrowingAfterExample::$calls);
     }
 
+    public function testEndOfTestHookRunsInsideTheExampleScopeWhileItsVariablesAreAlive(): void
+    {
+        $location = $this->reflectedLocation('EndOfTestSetup');
+        $example = new Example(<<<'PHP'
+            $answer = new \stdClass();
+            \TH\DocTest\Tests\Subscriber\EndOfTestSetup::$probe = \WeakReference::create($answer);
+            PHP, $location);
+
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(new TestSetup());
+        $dispatcher->addSubscriber(new TestExecutor());
+
+        $dispatcher->dispatch(new Event\BeforeTest($example));
+        $dispatcher->dispatch(new Event\ExecuteTest($example));
+        $dispatcher->dispatch(new Event\AfterTest($example));
+
+        static::assertSame(['example variable still alive'], EndOfTestSetup::$observations);
+    }
+
+    public function testEndOfTestHookRunsOncePerExample(): void
+    {
+        $location = $this->reflectedLocation('EndOfTestSetup');
+        $example = new Example('$answer = 42;', $location);
+
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(new TestSetup());
+        $dispatcher->addSubscriber(new TestExecutor());
+
+        $dispatcher->dispatch(new Event\BeforeTest($example));
+        $dispatcher->dispatch(new Event\ExecuteTest($example));
+        $dispatcher->dispatch(new Event\AfterTest($example));
+        $dispatcher->dispatch(new Event\BeforeTest($example));
+        $dispatcher->dispatch(new Event\ExecuteTest($example));
+        $dispatcher->dispatch(new Event\AfterTest($example));
+
+        static::assertCount(2, EndOfTestSetup::$observations);
+    }
+
     private function reflectedFunctionWithSetups(): \ReflectionFunction
     {
         $setup = CounterSetup::class;
@@ -99,14 +141,18 @@ final class TestSetupTest extends TestCase
 
     private function reflectedLocation(string $setup): CodeLocation
     {
+        $fname = 'fixture_' . \uniqid() . '_' . \preg_replace('/\W+/', '', $setup);
+
         $code = <<<PHP
-            return new \ReflectionFunction(
-                #[\TH\DocTest\Attributes\ExamplesSetup(new TH\DocTest\Tests\Subscriber\\{$setup}('h'))]
-                static function (): void {},
-            );
+            #[\TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Subscriber\\{$setup}('h'))]
+            function {$fname}(): void {}
+
+            return new \ReflectionFunction('TH\\DocTest\\Tests\\Subscriber\\{$fname}');
             PHP;
 
-        $source = $this->reflect($code);
+        /** @var \ReflectionFunction|false $source */
+        $source = eval("namespace TH\\DocTest\\Tests\\Subscriber;\n{$code}");
+        \assert($source instanceof \ReflectionFunction, description: 'eval must return a ReflectionFunction');
 
         return CodeLocation::fromReflection($source, (string) $source->getDocComment());
     }
