@@ -9,6 +9,8 @@ use TH\DocTest\Attributes;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
+use TH\DocTest\Setup\AfterExample;
+use TH\DocTest\Setup\BeforeExample;
 
 final class TestSetup implements EventSubscriberInterface
 {
@@ -48,6 +50,8 @@ final class TestSetup implements EventSubscriberInterface
                 $this->handles[] = $this->instantiate($expression);
             }
 
+            $this->notifyBeforeExample();
+
             return;
         }
 
@@ -63,10 +67,14 @@ final class TestSetup implements EventSubscriberInterface
         foreach ($attributes as $attribute) {
             $this->handles[] = $attribute->newInstance()->setup;
         }
+
+        $this->notifyBeforeExample();
     }
 
     public function afterTest(): void
     {
+        $this->notifyAfterExample();
+
         $this->handles = [];
     }
 
@@ -77,6 +85,34 @@ final class TestSetup implements EventSubscriberInterface
     private function attributes(\ReflectionClass|\ReflectionMethod|\ReflectionFunction $reflection): array
     {
         return $reflection->getAttributes(Attributes\ExamplesSetup::class, \ReflectionAttribute::IS_INSTANCEOF);
+    }
+
+    private function notifyBeforeExample(): void
+    {
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof BeforeExample) {
+                $handle->beforeExample();
+            }
+        }
+    }
+
+    /**
+     * a hook throwing during cleanup must not mask the example's own outcome:
+     * on a failed example an exception here would replace the real failure in
+     * the report
+     */
+    private function notifyAfterExample(): void
+    {
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof AfterExample) {
+                try {
+                    $handle->afterExample();
+                } catch (\Throwable) {
+                    // the setup objects are about to be released anyway: swallowing
+                    // keeps the example's result authoritative
+                }
+            }
+        }
     }
 
     /**
