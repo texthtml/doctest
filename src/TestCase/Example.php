@@ -58,23 +58,35 @@ final class Example implements TestCase
 
     private function header(): string
     {
-        $location = $this->location;
-        $source = $location->source;
+        [$runtimeNamespace, $useTarget] = $this->runtimeNamespaceAndUseTarget();
+
+        $prefixes = [
+            "namespace {$runtimeNamespace}\\Example{$this->location->index};",
+        ];
+
+        if ($useTarget !== '') {
+            $prefixes[] = "use {$useTarget};";
+        }
+
+        return \implode(separator: '', array: $prefixes);
+    }
+
+    /**
+     * the generated namespace segments off the declaring symbol (class for
+     * methods, bare name for class-likes), and the `use` target is the
+     * declaring class / the function itself — mirroring what reflection
+     * exposes, so examples resolve the analyzed code's names unqualified
+     *
+     * @return array{string, string}
+     */
+    private function runtimeNamespaceAndUseTarget(): array
+    {
+        $source = $this->location->source;
 
         if ($source instanceof SymbolSource) {
-            // mirror the reflection header: the runtime namespace segments off the
-            // declaring symbol (class for methods, bare name for class-likes),
-            // and the `use` target is the declaring class / the function itself
             $extraNamespacePart = $source->isMethod() ? "\\{$source->ownerShort}" : '';
-            $prefixes = [
-                "namespace TH\\Doctest\\Runtime\\{$source->ownerShort}{$extraNamespacePart}\\Example{$location->index};",
-            ];
 
-            if ($source->useTarget !== '') {
-                $prefixes[] = "use {$source->useTarget};";
-            }
-
-            return \implode(separator: '', array: $prefixes);
+            return ["TH\\Doctest\\Runtime\\{$source->ownerShort}{$extraNamespacePart}", $source->useTarget];
         }
 
         $extraNamespacePart = $source instanceof \ReflectionMethod ? "\\{$source->getName()}" : '';
@@ -83,17 +95,9 @@ final class Example implements TestCase
             $source = $source->getDeclaringClass();
         }
 
-        $prefixes = [
-            "namespace TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}\\Example{$location->index};",
-        ];
+        $useTarget = $source instanceof \ReflectionFunctionAbstract ? $source->getNamespaceName() : $source->getName();
 
-        $fqcn = $source instanceof \ReflectionFunctionAbstract ? $source->getNamespaceName() : $source->getName();
-
-        if ($fqcn !== '') {
-            $prefixes[] = "use {$fqcn};";
-        }
-
-        return \implode(separator: '', array: $prefixes);
+        return ["TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}", $useTarget];
     }
 
     private static function expectedFailureFromLine(string $line): ?ExpectedFailure
