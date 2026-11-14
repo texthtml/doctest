@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Attributes;
 use TH\DocTest\Event;
@@ -16,6 +18,10 @@ use TH\DocTest\Setup\EndOfTestHooks;
 
 final class TestSetup implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly LoggerInterface $logger = new NullLogger(),
+    ) {}
+
     /**
      * keeps the setup objects alive for the duration of the example: releasing them
      * earlier would run their destructors mid-test
@@ -126,9 +132,14 @@ final class TestSetup implements EventSubscriberInterface
             if ($handle instanceof AfterExample) {
                 try {
                     $handle->afterExample();
-                } catch (\Throwable) {
-                    // the setup objects are about to be released anyway: swallowing
-                    // keeps the example's result authoritative
+                } catch (\Throwable $th) {
+                    $class = $handle::class;
+
+                    $this->logger->warning('{setup}::afterExample() threw {class}: {message}', [
+                        'setup' => $class,
+                        'class' => $th::class,
+                        'message' => $th->getMessage(),
+                    ]);
                 }
             }
         }
@@ -142,6 +153,7 @@ final class TestSetup implements EventSubscriberInterface
     private function instantiate(string $expression): object
     {
         try {
+            /** @var mixed $handle eval()'s result is untyped by construction */
             $handle = eval("return {$expression};");
         } catch (\Throwable $previous) {
             throw new \RuntimeException("failed to instantiate setup: {$expression}", previous: $previous);

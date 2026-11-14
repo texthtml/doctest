@@ -67,7 +67,9 @@ final class Application extends SingleCommandApplication
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));
         $testSuite->addSubscriber(new Subscriber\Progress($input, $output));
-        $testSuite->addSubscriber(new Subscriber\TestSetup());
+        $testSuite->addSubscriber(new Subscriber\TestSetup(new ConsoleLogger($output, [
+            LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL,
+        ])));
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 

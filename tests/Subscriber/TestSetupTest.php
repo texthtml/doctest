@@ -85,42 +85,24 @@ final class TestSetupTest extends TestCase
         static::assertSame(['construct', 'after'], ThrowingAfterExample::$calls);
     }
 
-    public function testEndOfTestHookRunsInsideTheExampleScopeWhileItsVariablesAreAlive(): void
+    public function testThrowingAfterExampleHookLogsAWarning(): void
     {
-        $location = $this->reflectedLocation('EndOfTestSetup');
-        $example = new Example(<<<'PHP'
-            $answer = new \stdClass();
-            \TH\DocTest\Tests\Subscriber\EndOfTestSetup::$probe = \WeakReference::create($answer);
-            PHP, $location);
-
-        $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new TestSetup());
-        $dispatcher->addSubscriber(new TestExecutor());
-
-        $dispatcher->dispatch(new Event\BeforeTest($example));
-        $dispatcher->dispatch(new Event\ExecuteTest($example));
-        $dispatcher->dispatch(new Event\AfterTest($example));
-
-        static::assertSame(['example variable still alive'], EndOfTestSetup::$observations);
-    }
-
-    public function testEndOfTestHookRunsOncePerExample(): void
-    {
-        $location = $this->reflectedLocation('EndOfTestSetup');
+        $location = $this->reflectedLocation('ThrowingAfterExample');
         $example = new Example('$answer = 42;', $location);
 
+        $logger = new RecordingLogger();
         $dispatcher = new EventDispatcher();
-        $dispatcher->addSubscriber(new TestSetup());
-        $dispatcher->addSubscriber(new TestExecutor());
+        $dispatcher->addSubscriber(new TestSetup($logger));
 
         $dispatcher->dispatch(new Event\BeforeTest($example));
-        $dispatcher->dispatch(new Event\ExecuteTest($example));
-        $dispatcher->dispatch(new Event\AfterTest($example));
-        $dispatcher->dispatch(new Event\BeforeTest($example));
-        $dispatcher->dispatch(new Event\ExecuteTest($example));
         $dispatcher->dispatch(new Event\AfterTest($example));
 
-        static::assertCount(2, EndOfTestSetup::$observations);
+        static::assertSame(
+            [
+                'TH\DocTest\Tests\Subscriber\ThrowingAfterExample::afterExample() threw LogicException: cleanup must not mask the example outcome',
+            ],
+            $logger->messages['warning'] ?? [],
+        );
     }
 
     private function reflectedFunctionWithSetups(): \ReflectionFunction
@@ -141,10 +123,11 @@ final class TestSetupTest extends TestCase
 
     private function reflectedLocation(string $setup): CodeLocation
     {
-        $fname = 'fixture_' . \uniqid() . '_' . \preg_replace('/\W+/', '', $setup);
+        $fname = 'fixture_' . \uniqid() . '_' . (string) \preg_replace('/\W+/', '', $setup);
+        $class = "TH\\DocTest\\Tests\\Subscriber\\{$setup}";
 
         $code = <<<PHP
-            #[\TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Subscriber\\{$setup}('h'))]
+            #[\TH\DocTest\Attributes\ExamplesSetup(new \\{$class}('h'))]
             function {$fname}(): void {}
 
             return new \ReflectionFunction('TH\\DocTest\\Tests\\Subscriber\\{$fname}');
