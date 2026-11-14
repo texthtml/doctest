@@ -1,5 +1,6 @@
 * text=auto
 
+/composer.lock export-ignore
 /.devcontainer/ export-ignore
 /.docker/ export-ignore
 /.github/ export-ignore

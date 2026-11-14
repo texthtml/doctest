@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="">
+  <project timestamp="">
+    <file name="examples/Ratio.php">
+      <class name="Ratio" namespace="global">
+        <metrics complexity="4" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
+      </class>
+      <line num="21" type="method" name="__construct" visibility="public" complexity="2" crap="" count="1"/>
+      <line num="24" type="stmt" count="1"/>
+      <line num="25" type="stmt" count="1"/>
+      <line num="34" type="method" name="fromPercentage" visibility="public" complexity="1" crap="" count="1"/>
+      <line num="36" type="stmt" count="1"/>
+      <line num="45" type="method" name="formatPercentage" visibility="public" complexity="1" crap="" count="1"/>
+      <line num="47" type="stmt" count="1"/>
+      <metrics loc="50" ncloc="23" classes="1" methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="4" elements="7" coveredelements="7"/>
+    </file>
+    <package name="Examples">
+      <file name="examples/Setup.php">
+        <class name="Examples\Recorder" namespace="Examples">
+          <metrics complexity="2" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
+        </class>
+        <line num="21" type="method" name="__construct" visibility="public" complexity="1" crap="" count="1"/>
+        <line num="23" type="stmt" count="1"/>
+        <line num="26" type="method" name="record" visibility="public" complexity="1" crap="" count="1"/>
+        <line num="28" type="stmt" count="1"/>
+        <line num="40" type="stmt" count="0"/>
+        <line num="53" type="stmt" count="0"/>
+        <metrics loc="54" ncloc="48" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="4" coveredstatements="2" elements="6" coveredelements="4"/>
+      </file>
+    </package>
+    <file name="examples/factorial.php">
+      <line num="48" type="stmt" count="1"/>
+      <line num="49" type="stmt" count="1"/>
+      <line num="52" type="stmt" count="1"/>
+      <line num="53" type="stmt" count="1"/>
+      <line num="56" type="stmt" count="1"/>
+      <metrics loc="58" ncloc="14" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="5" coveredstatements="5" elements="5" coveredelements="5"/>
+    </file>
+    <metrics files="3" loc="162" ncloc="85" classes="2" methods="5" coveredmethods="5" conditionals="0" coveredconditionals="0" statements="13" coveredstatements="11" elements="18" coveredelements="16"/>
+  </project>
+</coverage>

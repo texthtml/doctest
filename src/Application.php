@@ -52,6 +52,8 @@ final class Application extends SingleCommandApplication
         array $languages = ['php'],
         #[Option('Write test results to a file in JUnit XML format')]
         ?string $junit = null,
+        #[Option('Write code coverage of the executed examples to a file in Clover XML format')]
+        ?string $coverageClover = null,
     ): int {
         $testSuite = TestSuite::fromPaths(
             $paths,
@@ -68,6 +70,10 @@ final class Application extends SingleCommandApplication
 
         if ($junit !== null) {
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
+        }
+
+        if ($coverageClover !== null && $coverageClover !== '') {
+            $testSuite->addSubscriber(new Subscriber\CodeCoverage($paths, $coverageClover));
         }
 
         return $testSuite->run($bail)->isSuccess() ? Command::SUCCESS : Command::FAILURE;

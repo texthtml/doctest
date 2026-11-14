@@ -43,5 +43,10 @@
         ],
         "analyze": "@php vendor/bin/mago analyze",
         "fix": "@php vendor/bin/mago fix"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2"
+        }
     }
 }
