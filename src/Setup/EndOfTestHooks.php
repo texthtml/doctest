@@ -14,7 +14,7 @@ namespace TH\DocTest\Setup;
  */
 final class EndOfTestHooks
 {
-    /** @var list<callable> */
+    /** @var list<callable(): void> */
     public static array $hooks = [];
 
     public static function invoke(int $index): void
