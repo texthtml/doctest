@@ -34,29 +34,18 @@ final class CodeCoverageTest extends TestCase
 
     public function testRefusesMisconfiguredPcovDirectory(): void
     {
-        if (!\function_exists('\\pcov\\start')) {
-            static::markTestSkipped('pcov is not loaded');
+        // the analyzed path is the examples/ directory: the refusal path can
+        // only be exercised when pcov is loaded AND does not cover it —
+        // otherwise the subscriber correctly starts
+        $covered = self::pcovCoversPaths([__DIR__ . '/../../examples']);
+
+        if ($covered === null || $covered) {
+            static::markTestSkipped(
+                $covered === null ? self::pcovSkipReason() : 'pcov.directory covers the analyzed paths',
+            );
         }
 
-        $cwd = \getcwd();
-
-        if ($cwd === false) {
-            static::markTestSkipped('could not determine current working directory');
-        }
-
-        $configured = \ini_get('pcov.directory');
-        $directory = $configured === false || $configured === '' ? $cwd . '/src' : $configured;
-
-        // only meaningful when the environment *would* silently report 0%:
-        // a pcov.directory that excludes the analyzed paths (here: vendor/,
-        // which stands in for "somewhere the project under test lives")
-        $vendor = \realpath($cwd . '/vendor');
-
-        if ($vendor === false || \str_starts_with($vendor, $directory)) {
-            static::markTestSkipped("pcov.directory ({$directory}) covers the analyzed paths");
-        }
-
-        $subscriber = new CodeCoverage(paths: [$vendor], filename: '/dev/null');
+        $subscriber = new CodeCoverage(paths: [__DIR__ . '/../../examples'], filename: '/dev/null');
 
         try {
             $subscriber->start();
@@ -69,26 +58,16 @@ final class CodeCoverageTest extends TestCase
 
     public function testCollectsCoverageOfEvaluatedCodeInTheAnalyzedPaths(): void
     {
-        if (!\function_exists('\\pcov\\start')) {
-            static::markTestSkipped('pcov is not loaded');
-        }
+        $covered = self::pcovCoversPaths([__DIR__ . '/../../src']);
 
-        $cwd = \getcwd();
-
-        if ($cwd === false) {
-            static::markTestSkipped('could not determine current working directory');
-        }
-
-        $configured = \ini_get('pcov.directory');
-        $directory = $configured === false || $configured === '' ? $cwd . '/src' : $configured;
-        $src = \realpath(__DIR__ . '/../../src');
-
-        if ($src === false || !\str_starts_with($src, $directory)) {
-            static::markTestSkipped('pcov.directory (' . $directory . ') does not include the analyzed sources');
+        if ($covered === null || !$covered) {
+            static::markTestSkipped(
+                $covered === null ? self::pcovSkipReason() : 'pcov.directory does not include the analyzed sources',
+            );
         }
 
         $filename = \sys_get_temp_dir() . '/doctest-codecoverage-test.xml';
-        $subscriber = new CodeCoverage(paths: [$src], filename: $filename);
+        $subscriber = new CodeCoverage(paths: [__DIR__ . '/../../src'], filename: $filename);
 
         $subscriber->start();
 
@@ -98,11 +77,49 @@ final class CodeCoverageTest extends TestCase
         $subscriber->write(new Event\AfterTestSuite(\TH\DocTest\TestOutcome::Success));
 
         $xml = \file_get_contents($filename);
+        static::assertNotFalse($xml);
+        static::assertStringContainsString('TestSuite.php', $xml);
+    }
 
-        if ($xml === false) {
-            throw new \RuntimeException("could not read {$filename}");
+    /**
+     * Mirrors Subscriber\CodeCoverage's pcov guard.
+     *
+     * @param list<string> $paths paths the test would analyze
+     *
+     * @return bool|null whether pcov's collection scope covers the paths,
+     *                    or null when the environment cannot exercise the
+     *                    driver at all (pcov absent, unusable cwd)
+     */
+    private static function pcovCoversPaths(array $paths): ?bool
+    {
+        if (!\function_exists('\\pcov\\start')) {
+            return null;
         }
 
-        static::assertStringContainsString('TestSuite.php', $xml);
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            return null;
+        }
+
+        $configured = \ini_get('pcov.directory');
+        $directory = $configured === false || $configured === '' ? $cwd . '/src' : $configured;
+
+        foreach ($paths as $path) {
+            $realPath = \realpath($path);
+
+            if ($realPath !== false && (\str_starts_with($realPath, $directory . '/') || $realPath === $directory)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function pcovSkipReason(): string
+    {
+        return \function_exists('\\pcov\\start')
+            ? 'could not determine current working directory'
+            : 'pcov is not loaded';
     }
 }
