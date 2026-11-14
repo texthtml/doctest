@@ -54,12 +54,15 @@ final class Application extends SingleCommandApplication
         ?string $junit = null,
         #[Option('Write code coverage of the executed examples to a file in Clover XML format')]
         ?string $coverageClover = null,
+        #[Option('Scan files for examples statically (never include the code under test)')]
+        bool $staticScan = false,
     ): int {
         $testSuite = TestSuite::fromPaths(
             $paths,
             $filter,
             $this->acceptedLanguages($languages),
             new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]),
+            $staticScan,
         );
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));

@@ -6,12 +6,13 @@ namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
 
 final class SourceComments implements Comments
 {
     public function __construct(
-        private CommentReflectionSources $commentReflectionSources,
+        private CommentReflectionSources|StaticCommentSources $sources,
     ) {}
 
     /**
@@ -19,21 +20,33 @@ final class SourceComments implements Comments
      */
     public function getIterator(): \Traversable
     {
-        foreach ($this->commentReflectionSources as $commentReflectionSource) {
-            if ($commentReflectionSource instanceof TestCase\SourceError) {
-                yield $commentReflectionSource->location() => $commentReflectionSource;
+        foreach ($this->sources as $source) {
+            if ($source instanceof TestCase\SourceError) {
+                yield $source->location() => $source;
 
                 continue;
             }
 
-            $comment = $commentReflectionSource->getDocComment();
+            $comment = $source instanceof SymbolSource ? $source->docComment : $source->getDocComment();
 
-            if ($comment !== false) {
-                // $commentReflectionSource is `ReflectionClass<object>|…`; the differing generic parameters
-                // are equivalent at runtime for the metadata extraction done here
-                // @mago-expect analysis:less-specific-nested-argument-type
-                yield new Comment($comment, CodeLocation::fromReflection($commentReflectionSource, $comment));
+            if ($comment === false) {
+                continue;
             }
+
+            // reflection sources are `ReflectionClass<object>|…`; the differing generic parameters
+            // are equivalent at runtime for the metadata extraction done here
+            // @mago-expect analysis:less-specific-nested-argument-type
+            yield new Comment(
+                $comment,
+                $source instanceof SymbolSource
+                    ? CodeLocation::fromSymbol(
+                        $source,
+                        $comment,
+                        self::relative($source->path),
+                        $source->docEndLine ?? 1,
+                    )
+                    : CodeLocation::fromReflection($source, $comment),
+            );
         }
     }
 
@@ -43,5 +56,22 @@ final class SourceComments implements Comments
     public static function fromPaths(array $paths, LoggerInterface $logger): self
     {
         return new self(new CommentReflectionSources($paths, $logger));
+    }
+
+    private static function relative(string $path): string
+    {
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            return $path;
+        }
+
+        return (
+            \preg_replace(
+                pattern: '/^' . \preg_quote(str: $cwd, delimiter: '/') . '\/?/',
+                replacement: '',
+                subject: $path,
+            ) ?? $path
+        );
     }
 }

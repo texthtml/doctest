@@ -81,7 +81,7 @@ final class Files implements \IteratorAggregate
         $finder = (new Finder())->in($path)->sortByName();
 
         try {
-            yield from $finder->in($path);
+            yield from $finder;
         } catch (DirectoryNotFoundException $th) {
             // the directory existed at the is_dir() check above: it was removed since, racing the iteration
             $this->logger->warning('Skipped non-readable path {path}: {message}', [

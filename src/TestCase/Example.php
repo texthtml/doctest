@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TH\DocTest\TestCase;
 
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
 use Webmozart\Assert\Assert;
 
@@ -59,10 +60,26 @@ final class Example implements TestCase
     {
         $location = $this->location;
         $source = $location->source;
-        $extraNamespacePart = '';
+
+        if ($source instanceof SymbolSource) {
+            // mirror the reflection header: the runtime namespace segments off the
+            // declaring symbol (class for methods, bare name for class-likes),
+            // and the `use` target is the declaring class / the function itself
+            $extraNamespacePart = $source->isMethod() ? "\\{$source->ownerShort}" : '';
+            $prefixes = [
+                "namespace TH\\Doctest\\Runtime\\{$source->ownerShort}{$extraNamespacePart}\\Example{$location->index};",
+            ];
+
+            if ($source->useTarget !== '') {
+                $prefixes[] = "use {$source->useTarget};";
+            }
+
+            return \implode(separator: '', array: $prefixes);
+        }
+
+        $extraNamespacePart = $source instanceof \ReflectionMethod ? "\\{$source->getName()}" : '';
 
         if ($source instanceof \ReflectionMethod) {
-            $extraNamespacePart = "\\{$source->getName()}";
             $source = $source->getDeclaringClass();
         }
 

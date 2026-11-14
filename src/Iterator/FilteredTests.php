@@ -43,6 +43,6 @@ final class FilteredTests implements Tests
         ?array $acceptedLanguages,
         LoggerInterface $logger,
     ): self {
-        return self::filter(AllTests::fromPaths($paths, $acceptedLanguages, $logger), $filter);
+        return self::filter(AllTests::from(SourceComments::fromPaths($paths, $logger), $acceptedLanguages), $filter);
     }
 }

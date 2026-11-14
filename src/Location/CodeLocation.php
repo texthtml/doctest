@@ -12,10 +12,10 @@ final class CodeLocation implements Location
      *
      * @mago-expect lint:excessive-parameter-list
      *
-     * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction $source
+     * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction|SymbolSource $source
      */
     public function __construct(
-        public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction $source,
+        public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction|SymbolSource $source,
         public readonly string $name,
         public readonly string $path,
         public readonly ?int $startLine,
@@ -75,6 +75,17 @@ final class CodeLocation implements Location
         $startLine = $endLine - \substr_count($comment, \PHP_EOL);
 
         return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
+    }
+
+    /**
+     * @param int $endLine last line of the doc comment (its `/**` line)
+     * @param string $relativePath already-relative path of the file the symbol was scanned from
+     */
+    public static function fromSymbol(SymbolSource $source, string $comment, string $relativePath, int $endLine): self
+    {
+        $startLine = $endLine - \substr_count($comment, \PHP_EOL);
+
+        return new self($source, $source->name, $relativePath, $startLine, $endLine, 1);
     }
 
     private static function makePathRelative(string|false $path): string
