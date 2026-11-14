@@ -113,10 +113,13 @@ final class TestSetup implements EventSubscriberInterface
     private function registerEndOfTestHooks(): void
     {
         EndOfTestHooks::$hooks = [];
+        EndOfTestHooks::setLogger($this->logger);
 
         foreach ($this->handles as $handle) {
             if ($handle instanceof EndOfTest) {
-                EndOfTestHooks::$hooks[] = $handle->endOfTest(...);
+                $class = $handle::class;
+
+                EndOfTestHooks::$hooks[] = [$handle->endOfTest(...), "{$class}::endOfTest"];
             }
         }
     }
@@ -139,6 +142,7 @@ final class TestSetup implements EventSubscriberInterface
                         'setup' => $class,
                         'class' => $th::class,
                         'message' => $th->getMessage(),
+                        'exception' => $th,
                     ]);
                 }
             }

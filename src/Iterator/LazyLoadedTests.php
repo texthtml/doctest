@@ -64,6 +64,7 @@ final class LazyLoadedTests implements Tests
             $logger->error('Failed to include {path}: {message}', [
                 'path' => $path,
                 'message' => $th->getMessage(),
+                'exception' => $th,
             ]);
         }
     }

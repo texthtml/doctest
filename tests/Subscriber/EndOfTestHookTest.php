@@ -19,6 +19,7 @@ final class EndOfTestHookTest extends TestCase
     {
         EndOfTestSetup::$observations = [];
         EndOfTestSetup::$probe = null;
+        ThrowingEndOfTestSetup::$calls = [];
         \TH\DocTest\Setup\EndOfTestHooks::$hooks = [];
     }
 
@@ -71,6 +72,55 @@ final class EndOfTestHookTest extends TestCase
         $this->runExample($example);
 
         static::assertCount(2, EndOfTestSetup::$observations);
+    }
+
+    public function testThrowingHookIsIsolatedLoggedAndDoesNotMaskTheExampleFailure(): void
+    {
+        $fname = 'fixture_throwing_' . \uniqid();
+
+        $code = <<<PHP
+            #[\TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Subscriber\ThrowingEndOfTestSetup())]
+            #[\TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Subscriber\EndOfTestSetup())]
+            function {$fname}(): void {}
+
+            return new \ReflectionFunction('TH\\DocTest\\Tests\\Subscriber\\{$fname}');
+            PHP;
+
+        /** @var \ReflectionFunction|false $source */
+        $source = eval("namespace TH\\DocTest\\Tests\\Subscriber;\n{$code}");
+        \assert($source instanceof \ReflectionFunction, description: 'eval must return a ReflectionFunction');
+
+        $logger = new RecordingLogger();
+        $dispatcher = new EventDispatcher();
+        $dispatcher->addSubscriber(new TestSetup($logger));
+        $dispatcher->addSubscriber(new TestExecutor());
+
+        $example = new Example('throw new \LogicException("boom");', CodeLocation::fromReflection(
+            $source,
+            (string) $source->getDocComment(),
+        ));
+
+        $dispatcher->dispatch(new Event\BeforeTest($example));
+
+        // the example failure must still propagate…
+        try {
+            $dispatcher->dispatch(new Event\ExecuteTest($example));
+            static::fail('the example exception must propagate through the finally');
+        } catch (\LogicException $e) {
+            static::assertSame('boom', $e->getMessage());
+        }
+
+        // …both hooks ran (the throwing one first, the healthy one despite it)…
+        static::assertSame(['endOfTest'], ThrowingEndOfTestSetup::$calls);
+        static::assertCount(1, EndOfTestSetup::$observations);
+
+        // …and the hook failure was logged
+        static::assertSame(
+            [
+                'TH\DocTest\Tests\Subscriber\ThrowingEndOfTestSetup::endOfTest threw LogicException: hook failure must not mask the example outcome',
+            ],
+            $logger->messages['warning'] ?? [],
+        );
     }
 
     private function runExample(Example $example): void

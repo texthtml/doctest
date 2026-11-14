@@ -23,28 +23,7 @@ final class Example implements TestCase
 
     public function eval(): void
     {
-        eval($this->header() . $this->exampleBody());
-    }
-
-    /**
-     * the example code, wrapped in a try/finally whose finally carries the
-     * {@see \TH\DocTest\Setup\EndOfTest} hooks: they run inside the example's
-     * scope (while its variables are alive), even when the example ends
-     * abruptly — `return`, or an uncaught exception, which then still propagates
-     */
-    private function exampleBody(): string
-    {
-        if (\TH\DocTest\Setup\EndOfTestHooks::$hooks === []) {
-            return $this->code;
-        }
-
-        return <<<PHP
-            try {
-            {$this->code}
-            } finally {
-                \TH\DocTest\Setup\EndOfTestHooks::invoke();
-            }
-            PHP;
+        eval($this->header() . new EvaledCode($this->code));
     }
 
     public function expectedFailure(): ?ExpectedFailure

@@ -8,7 +8,6 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
-use TH\DocTest\Subscriber\TestExecutor;
 use TH\DocTest\Subscriber\TestSetup;
 use TH\DocTest\TestCase\Example;
 
@@ -123,7 +122,7 @@ final class TestSetupTest extends TestCase
 
     private function reflectedLocation(string $setup): CodeLocation
     {
-        $fname = 'fixture_' . \uniqid() . '_' . (string) \preg_replace('/\W+/', '', $setup);
+        $fname = 'fixture_' . \uniqid() . '_' . \preg_replace(pattern: '/\W+/', replacement: '', subject: $setup);
         $class = "TH\\DocTest\\Tests\\Subscriber\\{$setup}";
 
         $code = <<<PHP
