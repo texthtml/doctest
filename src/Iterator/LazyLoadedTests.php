@@ -21,12 +21,13 @@ final class LazyLoadedTests implements Tests
      */
     private static array $included = [];
 
-    /**
-     * @param \Traversable<TestCase> $tests tests ordered by file, so each file's
-     *                                      examples arrive together and its
-     *                                      file can be included just before
-     */
     public function __construct(
+        /**
+         * tests ordered by file, so each file's examples arrive together and
+         * its file can be included just before
+         *
+         * @var \Traversable<TestCase>
+         */
         private readonly \Traversable $tests,
         private readonly LoggerInterface $logger,
     ) {}

@@ -25,13 +25,15 @@ final class CodeCoverage implements EventSubscriberInterface
 {
     private static ?PhpCodeCoverage $coverage = null;
 
-    /**
-     * @param non-empty-string $filename
-     * @param list<string>     $paths paths the examples' code lives in: used as the
-     *                            coverage filter so runtime noise is not collected
-     */
     public function __construct(
+        /**
+         * paths the examples' code lives in: used as the coverage filter so
+         * runtime noise is not collected
+         *
+         * @var list<string>
+         */
         private readonly array $paths,
+        /** @var non-empty-string */
         private readonly string $filename,
     ) {}
 

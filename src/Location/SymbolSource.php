@@ -13,18 +13,22 @@ namespace TH\DocTest\Location;
  */
 final class SymbolSource
 {
-    /**
-     * @param list<string> $setups ExamplesSetup attribute instantiation expressions,
-     *                             name-resolved and printable (`new \…(…)`)
-     */
     public function __construct(
+        /** class, method or function */
         public readonly string $kind,
+        /** fully qualified display name (e.g. `Ns\Class::method(…)`, `Ns\function_name`) */
         public readonly string $name,
         /** short (unqualified) name of the enclosing declaration, used to build the runtime namespace */
         public readonly string $ownerShort,
         /** fqcn (or namespace for functions) to `use` in the eval header */
         public readonly string $useTarget,
         public readonly string $docComment,
+        /**
+         * ExamplesSetup attribute instantiation expressions, name-resolved and
+         * printable (`new \…(…)`)
+         *
+         * @var list<string>
+         */
         public readonly array $setups,
         public readonly string $path,
         /** line of the doc comment's last line (the `*\/` one) */

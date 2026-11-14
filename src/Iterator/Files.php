@@ -13,10 +13,12 @@ use Symfony\Component\Finder\Finder;
  */
 final class Files implements \IteratorAggregate
 {
-    /**
-     * @param array<string> $paths paths to PHP files & folders to look for PHP files in
-     */
     public function __construct(
+        /**
+         * paths to PHP files & folders to look for PHP files in
+         *
+         * @var array<string>
+         */
         private array $paths,
         private readonly LoggerInterface $logger,
     ) {}

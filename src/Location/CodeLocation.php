@@ -11,10 +11,11 @@ final class CodeLocation implements Location
      * smaller shape would move the verbosity, not remove it
      *
      * @mago-expect lint:excessive-parameter-list
-     *
-     * @param \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction|SymbolSource $source
      */
     public function __construct(
+        /**
+         * @var \ReflectionClass<*>|\ReflectionMethod|\ReflectionFunction|SymbolSource
+         */
         public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction|SymbolSource $source,
         public readonly string $name,
         public readonly string $path,

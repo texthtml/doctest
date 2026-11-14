@@ -13,10 +13,12 @@ use TH\DocTest\TestCase;
  */
 final class CommentReflectionSources implements \IteratorAggregate
 {
-    /**
-     * @param array<string> $paths paths to files and folders to look for PHP comments sources in
-     */
     public function __construct(
+        /**
+         * paths to files and folders to look for PHP comments sources in
+         *
+         * @var array<string>
+         */
         private array $paths,
         private readonly LoggerInterface $logger,
     ) {}

@@ -9,11 +9,9 @@ use TH\DocTest\TestCase;
 
 final class AllTests implements Tests
 {
-    /**
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
-     */
     public function __construct(
         private readonly Comments $comments,
+        /** @var list<string>|null Use empty string for unspecified language, and null for any languages */
         private readonly ?array $acceptedLanguages,
     ) {}
 
