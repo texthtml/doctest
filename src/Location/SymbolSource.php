@@ -14,7 +14,9 @@ namespace TH\DocTest\Location;
 final readonly class SymbolSource
 {
     public function __construct(
-        /** class, method or function */
+        /**
+         * @var "class"|"method"|"function"
+         */
         public string $kind,
         /** fully qualified display name (e.g. `Ns\Class::method(…)`, `Ns\function_name`) */
         public string $name,
