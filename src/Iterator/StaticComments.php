@@ -23,7 +23,7 @@ final class StaticComments implements Comments
     public function getIterator(): \Traversable
     {
         foreach ($this->sources as $source) {
-            $comment = $source->docComment;
+            $comment = $source->getDocComment();
 
             yield new Comment($comment, CodeLocation::fromSymbol($source, $comment));
         }

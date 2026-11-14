@@ -27,7 +27,9 @@ final class SourceComments implements Comments
                 continue;
             }
 
-            $comment = $source instanceof SymbolSource ? $source->docComment : $source->getDocComment();
+            // reflection sources return `false` for a missing doc comment while a
+            // SymbolSource always carries one
+            $comment = $source->getDocComment();
 
             if ($comment === false) {
                 continue;

@@ -39,4 +39,10 @@ final class SymbolSource
     {
         return $this->kind === 'method';
     }
+
+    /** mirrors the reflection API so source backends are interchangeable */
+    public function getDocComment(): string
+    {
+        return $this->docComment;
+    }
 }
