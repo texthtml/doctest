@@ -88,6 +88,10 @@ final class SymbolFactory
             kind: 'method',
             name: "{$fqcn}::{$node->name->name}(…)",
             ownerShort: $shortClass,
+            // the method name distinguishes sibling methods' runtime
+            // namespaces, mirroring the reflection backend: two methods'
+            // examples declaring same-named helpers must not collide
+            extraNamespace: $node->name->name,
             useTarget: $fqcn,
             docComment: $docComment,
             // class-level `#[ExamplesSetup]` apply to every method's example,

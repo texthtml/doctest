@@ -35,14 +35,13 @@ final readonly class SymbolSource
         public string $path,
         /** line of the doc comment's last line (the `*\/` one) */
         public ?int $docEndLine,
+        /** extra runtime-namespace segment distinguishing sibling declarations (the method name for methods), like the reflection backend's `\{method}` part */
+        public string $extraNamespace = '',
     ) {}
 
-    public function isMethod(): bool
-    {
-        return $this->kind === 'method';
-    }
-
-    /** mirrors the reflection API so source backends are interchangeable */
+    /**
+     * mirrors the reflection API so source backends are interchangeable
+     */
     public function getDocComment(): string
     {
         return $this->docComment;

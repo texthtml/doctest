@@ -83,7 +83,7 @@ final class Example implements TestCase
         $source = $this->location->source;
 
         if ($source instanceof SymbolSource) {
-            $extraNamespacePart = $source->isMethod() ? "\\{$source->ownerShort}" : '';
+            $extraNamespacePart = $source->extraNamespace === '' ? '' : "\\{$source->extraNamespace}";
 
             return ["TH\\Doctest\\Runtime\\{$source->ownerShort}{$extraNamespacePart}", $source->useTarget];
         }

@@ -118,6 +118,25 @@ final class StaticScanTest extends TestCase
         static::assertTrue($outcome->isSuccess(), 'the class-level setup must apply to method examples');
     }
 
+    public function testSiblingMethodsExamplesDoNotCollideOnHelperFunctions(): void
+    {
+        // two methods' examples each declare a `helper()` function: distinct
+        // runtime namespaces (class + method, mirroring the reflection
+        // backend) must keep the second declaration from fatally colliding
+        // with the first
+        $testSuite = \TH\DocTest\TestSuite::fromPaths(
+            [__DIR__ . '/fixtures/SameNamedHelpersFixture.php'],
+            '',
+            ['php'],
+            self::logger(),
+            staticScan: true,
+        );
+
+        $outcome = $testSuite->run(bail: false);
+
+        static::assertTrue($outcome->isSuccess(), 'same-named helpers in sibling methods must not redeclare');
+    }
+
     private static function fixturePath(): string
     {
         return __DIR__ . '/fixtures/StaticScanFixture.php';
