@@ -34,7 +34,7 @@ use TH\DocTest\Setup\CustomAssertions\Call;
 interface CustomAssertions
 {
     /**
-     * @param \Closure(Call=): void $next
+     * @param \Closure(Call|null=): void $next
      */
     public function assertion(Call $call, \Closure $next): void;
 }
