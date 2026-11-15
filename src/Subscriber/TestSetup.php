@@ -13,6 +13,8 @@ use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\Setup\AfterExample;
 use TH\DocTest\Setup\BeforeExample;
+use TH\DocTest\Setup\CustomAssertionHandlers;
+use TH\DocTest\Setup\CustomAssertions;
 use TH\DocTest\Setup\EndOfTest;
 use TH\DocTest\Setup\EndOfTestHooks;
 
@@ -59,6 +61,7 @@ final class TestSetup implements EventSubscriberInterface
             }
 
             $this->registerEndOfTestHooks();
+            $this->registerCustomAssertions();
             $this->notifyBeforeExample();
 
             return;
@@ -78,6 +81,7 @@ final class TestSetup implements EventSubscriberInterface
         }
 
         $this->registerEndOfTestHooks();
+        $this->registerCustomAssertions();
         $this->notifyBeforeExample();
     }
 
@@ -85,6 +89,7 @@ final class TestSetup implements EventSubscriberInterface
     {
         $this->notifyAfterExample();
         EndOfTestHooks::$hooks = [];
+        CustomAssertionHandlers::$handlers = [];
         $this->handles = [];
     }
 
@@ -120,6 +125,17 @@ final class TestSetup implements EventSubscriberInterface
                 $class = $handle::class;
 
                 EndOfTestHooks::$hooks[] = [$handle->endOfTest(...), "{$class}::endOfTest"];
+            }
+        }
+    }
+
+    private function registerCustomAssertions(): void
+    {
+        CustomAssertionHandlers::$handlers = [];
+
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof CustomAssertions) {
+                CustomAssertionHandlers::$handlers[] = $handle;
             }
         }
     }
