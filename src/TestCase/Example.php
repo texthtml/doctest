@@ -7,7 +7,6 @@ namespace TH\DocTest\TestCase;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
-use Webmozart\Assert\Assert;
 
 final class Example implements TestCase
 {
@@ -123,9 +122,8 @@ final class Example implements TestCase
     public static function __callStatic(string $name, array $arguments): void
     {
         $name = \preg_replace(pattern: '/^assert/', replacement: '', subject: $name);
+        \assert(\is_string($name), description: 'prefix stripping cannot fail');
 
-        // proxying Webmozart Assert calls made from evaluated examples: the method name is dynamic by design
-        // @mago-expect analysis:invalid-member-selector,analysis:string-member-selector
-        Assert::$name(...$arguments);
+        \TH\DocTest\Setup\CustomAssertionHandlers::invoke($name, $arguments);
     }
 }
