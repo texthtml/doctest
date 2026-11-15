@@ -89,6 +89,7 @@ final class Files implements \IteratorAggregate
             $this->logger->warning('Skipped non-readable path {path}: {message}', [
                 'path' => $path,
                 'message' => $th->getMessage(),
+                'exception' => $th,
             ]);
         }
     }

@@ -23,7 +23,7 @@ final class Example implements TestCase
 
     public function eval(): void
     {
-        eval($this->header() . $this->code);
+        eval($this->header() . new EvaledCode($this->code));
     }
 
     public function expectedFailure(): ?ExpectedFailure

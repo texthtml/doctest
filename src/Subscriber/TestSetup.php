@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Subscriber;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use TH\DocTest\Attributes;
 use TH\DocTest\Event;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
+use TH\DocTest\Setup\AfterExample;
+use TH\DocTest\Setup\BeforeExample;
+use TH\DocTest\Setup\EndOfTest;
+use TH\DocTest\Setup\EndOfTestHooks;
 
 final class TestSetup implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly LoggerInterface $logger = new NullLogger(),
+    ) {}
+
     /**
      * keeps the setup objects alive for the duration of the example: releasing them
      * earlier would run their destructors mid-test
@@ -48,6 +58,9 @@ final class TestSetup implements EventSubscriberInterface
                 $this->handles[] = $this->instantiate($expression);
             }
 
+            $this->registerEndOfTestHooks();
+            $this->notifyBeforeExample();
+
             return;
         }
 
@@ -63,10 +76,15 @@ final class TestSetup implements EventSubscriberInterface
         foreach ($attributes as $attribute) {
             $this->handles[] = $attribute->newInstance()->setup;
         }
+
+        $this->registerEndOfTestHooks();
+        $this->notifyBeforeExample();
     }
 
     public function afterTest(): void
     {
+        $this->notifyAfterExample();
+        EndOfTestHooks::$hooks = [];
         $this->handles = [];
     }
 
@@ -79,6 +97,58 @@ final class TestSetup implements EventSubscriberInterface
         return $reflection->getAttributes(Attributes\ExamplesSetup::class, \ReflectionAttribute::IS_INSTANCEOF);
     }
 
+    private function notifyBeforeExample(): void
+    {
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof BeforeExample) {
+                $handle->beforeExample();
+            }
+        }
+    }
+
+    /**
+     * EndOfTest hooks must run inside the example's scope (see the interface's
+     * doc): the eval'd code reaches them through this static registry
+     */
+    private function registerEndOfTestHooks(): void
+    {
+        EndOfTestHooks::$hooks = [];
+        EndOfTestHooks::setLogger($this->logger);
+
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof EndOfTest) {
+                $class = $handle::class;
+
+                EndOfTestHooks::$hooks[] = [$handle->endOfTest(...), "{$class}::endOfTest"];
+            }
+        }
+    }
+
+    /**
+     * a hook throwing during cleanup must not mask the example's own outcome:
+     * on a failed example an exception here would replace the real failure in
+     * the report
+     */
+    private function notifyAfterExample(): void
+    {
+        foreach ($this->handles as $handle) {
+            if ($handle instanceof AfterExample) {
+                try {
+                    $handle->afterExample();
+                } catch (\Throwable $th) {
+                    $class = $handle::class;
+
+                    $this->logger->warning('{setup}::afterExample() threw {class}: {message}', [
+                        'setup' => $class,
+                        'class' => $th::class,
+                        'message' => $th->getMessage(),
+                        'exception' => $th,
+                    ]);
+                }
+            }
+        }
+    }
+
     /**
      * a raw Throwable out of eval (fatal `Error`, ParseError…) would bypass the
      * runner's expected-failure handling: wrapping keeps setup problems
@@ -87,6 +157,7 @@ final class TestSetup implements EventSubscriberInterface
     private function instantiate(string $expression): object
     {
         try {
+            /** @var mixed $handle eval()'s result is untyped by construction */
             $handle = eval("return {$expression};");
         } catch (\Throwable $previous) {
             throw new \RuntimeException("failed to instantiate setup: {$expression}", previous: $previous);

@@ -51,6 +51,10 @@ final class TestExecutorTest extends TestCase
 
     public function setUp(): void
     {
+        // EndOfTestHookTest registers into this static registry: other executor
+        // tests must run unwrapped (byte-faithful ParseError messages)
+        \TH\DocTest\Setup\EndOfTestHooks::$hooks = [];
+
         $this->testExecutor = new TestExecutor();
     }
 

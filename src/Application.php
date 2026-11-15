@@ -57,17 +57,13 @@ final class Application extends SingleCommandApplication
         #[Option('Scan files for examples statically (never include the code under test)')]
         bool $staticScan = false,
     ): int {
-        $testSuite = TestSuite::fromPaths(
-            $paths,
-            $filter,
-            $this->acceptedLanguages($languages),
-            new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]),
-            $staticScan,
-        );
+        $logger = new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]);
+
+        $testSuite = TestSuite::fromPaths($paths, $filter, $this->acceptedLanguages($languages), $logger, $staticScan);
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));
         $testSuite->addSubscriber(new Subscriber\Progress($input, $output));
-        $testSuite->addSubscriber(new Subscriber\TestSetup());
+        $testSuite->addSubscriber(new Subscriber\TestSetup($logger));
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
         $testSuite->addSubscriber(new Subscriber\TestExecutor());
 
