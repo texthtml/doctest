@@ -68,6 +68,56 @@ final class StaticScanTest extends TestCase
         );
     }
 
+    public function testMethodSymbolsMergeTheEnclosingClassSetupsFirst(): void
+    {
+        $methods = [];
+
+        foreach (new StaticCommentSources(
+            [__DIR__ . '/fixtures/ClassLevelSetupsFixture.php'],
+            self::logger(),
+        ) as $symbol) {
+            if ($symbol->kind === 'method') {
+                $methods[$symbol->name] = $symbol->setups;
+            }
+        }
+
+        static::assertCount(2, $methods, 'both methods must be discovered');
+
+        // class-level setups come first, then the method's own — mirroring
+        // the reflection backend's `array_merge(class, method)`
+        $greet = $methods['TH\DocTest\Tests\Iterator\Fixtures\ClassLevelSetupsFixture::greet(…)'];
+        static::assertCount(2, $greet);
+        static::assertSame(
+            'new \TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Iterator\Fixtures\ClassLevelSetup())',
+            $greet[0],
+        );
+        static::assertSame(
+            'new \TH\DocTest\Attributes\ExamplesSetup(new \TH\DocTest\Tests\Iterator\Fixtures\MethodLevelSetup())',
+            $greet[1],
+        );
+
+        // a method without its own attribute still gets the class-level setup
+        static::assertSame(
+            [$greet[0]],
+            $methods['TH\DocTest\Tests\Iterator\Fixtures\ClassLevelSetupsFixture::wave(…)'],
+        );
+    }
+
+    public function testDiscoveredExampleRunsClassAndMethodSetups(): void
+    {
+        $testSuite = \TH\DocTest\TestSuite::fromPaths(
+            [__DIR__ . '/fixtures/ClassLevelSetupsFixture.php'],
+            '',
+            ['php'],
+            self::logger(),
+            staticScan: true,
+        );
+
+        $outcome = $testSuite->run(bail: false);
+
+        static::assertTrue($outcome->isSuccess(), 'the class-level setup must apply to method examples');
+    }
+
     private static function fixturePath(): string
     {
         return __DIR__ . '/fixtures/StaticScanFixture.php';

@@ -90,7 +90,10 @@ final class SymbolFactory
             ownerShort: $shortClass,
             useTarget: $fqcn,
             docComment: $docComment,
-            setups: $this->setups($node),
+            // class-level `#[ExamplesSetup]` apply to every method's example,
+            // mirroring the reflection backend (declaring class merged first,
+            // method's own second)
+            setups: [...$this->setups($class), ...$this->setups($node)],
             path: $this->path,
             docEndLine: $docEndLine,
         );
