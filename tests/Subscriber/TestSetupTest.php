@@ -122,7 +122,8 @@ final class TestSetupTest extends TestCase
 
     private function reflectedLocation(string $setup): CodeLocation
     {
-        $fname = 'fixture_' . \uniqid() . '_' . \preg_replace(pattern: '/\W+/', replacement: '', subject: $setup);
+        $fname =
+            'fixture_' . \uniqid() . '_' . (string) \preg_replace(pattern: '/\W+/', replacement: '', subject: $setup);
         $class = "TH\\DocTest\\Tests\\Subscriber\\{$setup}";
 
         $code = <<<PHP
