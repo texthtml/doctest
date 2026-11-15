@@ -12,8 +12,9 @@ use TH\DocTest\Setup\CustomAssertions\Call;
  * registered handler is asked in registration order with the raw call
  * (`name` without the `assert` prefix, arguments) and a `$next` callable
  * continuing down the chain until the default dispatch (Webmozart Assert) —
- * call `$next()` to delegate, don't call it to override; throwing from a
- * handler fails the example like any failed assertion would
+ * call `$next()` to delegate (optionally with a different Call, e.g. to alias
+ * one assertion to another), don't call it to override; throwing from a handler
+ * fails the example like any failed assertion would
  *
  * ```php
  * final class CustomAssertions implements CustomAssertions
@@ -32,7 +33,7 @@ use TH\DocTest\Setup\CustomAssertions\Call;
 interface CustomAssertions
 {
     /**
-     * @param \Closure(): void $next
+     * @param \Closure(Call=): void $next
      */
     public function assertion(Call $call, \Closure $next): void;
 }

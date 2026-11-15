@@ -76,7 +76,7 @@ final class CustomAssertionsTest extends TestCase
         try {
             $dispatcher->dispatch(new Event\ExecuteTest($example));
             static::fail('unknown assertions must still fail the example');
-        } catch (\Error $e) {
+        } catch (\Error $e) { // @mago-ignore analysis:avoid-catching-error (the native undefined-method Error IS the expected failure)
             static::assertSame(
                 'Call to undefined method Webmozart\Assert\Assert::NoSuchWebmozartAssertion()',
                 $e->getMessage(),
@@ -102,11 +102,29 @@ final class CustomAssertionsTest extends TestCase
         try {
             $dispatcher->dispatch(new Event\ExecuteTest($bare));
             static::fail('without the registered handler, assertResult must hit the default dispatch');
-        } catch (\Error $e) {
+        } catch (\Error $e) { // @mago-ignore analysis:avoid-catching-error (the native undefined-method Error IS the expected failure)
             static::assertSame('Call to undefined method Webmozart\Assert\Assert::Result()', $e->getMessage());
         }
 
         static::assertSame(['handler: Result'], CustomAssertionSetup::$calls);
+    }
+
+    public function testHandlerCanRewriteTheCallForTheRestOfTheChain(): void
+    {
+        // the rewrite setup aliases Zero to Same(0, …): a downstream handler must
+        // observe the rewritten call, and the default dispatch must receive it too
+        $example = new Example(<<<'PHP'
+            self::assertZero(42);
+            PHP, self::location('CustomAssertionSetup'));
+
+        try {
+            $this->runExample($example);
+            static::fail('the rewritten call must reach the default dispatch');
+        } catch (\Webmozart\Assert\InvalidArgumentException $e) {
+            static::assertSame('Expected a value identical to 42. Got: 0', $e->getMessage());
+        }
+
+        static::assertSame(['handler: Zero', 'rewrite: Zero → Same(0, 42)'], CustomAssertionSetup::$calls);
     }
 
     private function runExample(Example $example): void
@@ -122,7 +140,8 @@ final class CustomAssertionsTest extends TestCase
 
     private static function location(string $setup): CodeLocation
     {
-        $fname = 'fixture_' . \uniqid() . '_' . \preg_replace(pattern: '/\W+/', replacement: '', subject: $setup);
+        $fname =
+            'fixture_' . \uniqid() . '_' . (string) \preg_replace(pattern: '/\W+/', replacement: '', subject: $setup);
         $class = "TH\\DocTest\\Tests\\Subscriber\\{$setup}";
 
         $code = <<<PHP

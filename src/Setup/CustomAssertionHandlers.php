@@ -32,8 +32,14 @@ final class CustomAssertionHandlers
             return;
         }
 
-        $next = static function () use ($index, $call): void {
-            self::dispatch($index + 1, $call);
+        /**
+         * $next() delegates the call as-is; $next($override) replaces it for the
+         * rest of the chain (aliasing one assertion to another, tweaking args…)
+         *
+         * @param CustomAssertions\Call|null $override
+         */
+        $next = static function (?CustomAssertions\Call $override = null) use ($index, $call): void {
+            self::dispatch($index + 1, $override ?? $call);
         };
 
         self::$handlers[$index]->assertion($call, $next);
@@ -43,7 +49,6 @@ final class CustomAssertionHandlers
     {
         // proxying Webmozart Assert calls made from evaluated examples: the method name is dynamic by design
         // an unknown name naturally raises `Error: Call to undefined method`, like before the chain existed
-        // @mago-expect analysis:invalid-member-selector,analysis:string-member-selector
         \Webmozart\Assert\Assert::{$call->name}(...$call->arguments);
     }
 }
