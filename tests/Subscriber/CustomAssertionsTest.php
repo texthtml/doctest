@@ -32,7 +32,7 @@ final class CustomAssertionsTest extends TestCase
         $this->runExample($example);
 
         // `Result` was overridden (no fall-through), `True` wrapped the default dispatch
-        static::assertSame(['handler: result', 'handler: true', 'handler: post-default'], CustomAssertionSetup::$calls);
+        static::assertSame(['handler: Result', 'handler: True', 'handler: post-default'], CustomAssertionSetup::$calls);
     }
 
     public function testOverriddenFailingAssertionFailsTheExample(): void
@@ -60,7 +60,7 @@ final class CustomAssertionsTest extends TestCase
         $this->runExample($example);
 
         // handler pre-logged, default dispatch ran (true didn't throw), handler post-logged
-        static::assertSame(['handler: true', 'handler: post-default'], CustomAssertionSetup::$calls);
+        static::assertSame(['handler: True', 'handler: post-default'], CustomAssertionSetup::$calls);
     }
 
     public function testUnknownAssertionStillFailsThroughTheDefaultDispatch(): void
@@ -78,7 +78,7 @@ final class CustomAssertionsTest extends TestCase
             static::fail('unknown assertions must still fail the example');
         } catch (\Error $e) { // @mago-ignore analysis:avoid-catching-error (the native undefined-method Error IS the expected failure)
             static::assertSame(
-                'Call to undefined method Webmozart\Assert\Assert::noSuchWebmozartAssertion()',
+                'Call to undefined method Webmozart\Assert\Assert::NoSuchWebmozartAssertion()',
                 $e->getMessage(),
             );
         }
@@ -103,10 +103,10 @@ final class CustomAssertionsTest extends TestCase
             $dispatcher->dispatch(new Event\ExecuteTest($bare));
             static::fail('without the registered handler, assertResult must hit the default dispatch');
         } catch (\Error $e) { // @mago-ignore analysis:avoid-catching-error (the native undefined-method Error IS the expected failure)
-            static::assertSame('Call to undefined method Webmozart\Assert\Assert::result()', $e->getMessage());
+            static::assertSame('Call to undefined method Webmozart\Assert\Assert::Result()', $e->getMessage());
         }
 
-        static::assertSame(['handler: result'], CustomAssertionSetup::$calls);
+        static::assertSame(['handler: Result'], CustomAssertionSetup::$calls);
     }
 
     public function testHandlerCanRewriteTheCallForTheRestOfTheChain(): void
@@ -124,7 +124,7 @@ final class CustomAssertionsTest extends TestCase
             static::assertSame('Expected a value identical to 42. Got: 0', $e->getMessage());
         }
 
-        static::assertSame(['handler: zero', 'rewrite: zero → same(0, 42)'], CustomAssertionSetup::$calls);
+        static::assertSame(['handler: Zero', 'rewrite: Zero → Same(0, 42)'], CustomAssertionSetup::$calls);
     }
 
     private function runExample(Example $example): void

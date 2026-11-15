@@ -21,11 +21,7 @@ final class CustomAssertionHandlers
 
     public static function invoke(string $name, array $arguments): void
     {
-        // `assertEq` → `eq`, `assertStringNotEmpty` → `stringNotEmpty`: the
-        // call name is normalized to Webmozart's camelCase so handlers compare
-        // against real method names; PHP resolves the default dispatch
-        // case-insensitively either way
-        self::dispatch(0, new CustomAssertions\Call(\lcfirst($name), $arguments));
+        self::dispatch(0, new CustomAssertions\Call($name, $arguments));
     }
 
     private static function dispatch(int $index, CustomAssertions\Call $call): void
