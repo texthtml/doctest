@@ -12,8 +12,9 @@ final class Call
 {
     public function __construct(
         /**
-         * asserted name, without the `assert` prefix: `assertEq(…)` → `Eq`,
-         * `assertTrue(…)` → `True`, `assertResultUsed(…)` → `ResultUsed`
+         * asserted name, without the `assert` prefix and with the first letter
+         * lowercased: `assertEq(…)` → `eq`, `assertTrue(…)` → `true`,
+         * `assertResultUsed(…)` → `resultUsed`
          */
         public readonly string $name,
         /** @var array<mixed> */

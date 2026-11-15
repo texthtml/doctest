@@ -16,7 +16,7 @@ final class CustomAssertionSetup implements CustomAssertions
     {
         self::$calls[] = "handler: {$call->name}";
 
-        if ($call->name === 'Result') {
+        if ($call->name === 'result') {
             // override: `self::assertResult(x, y)` asserts identity, default dispatch bypassed
             $x = $call->arguments[0] ?? null;
             $y = $call->arguments[1] ?? null;
@@ -28,7 +28,7 @@ final class CustomAssertionSetup implements CustomAssertions
             return;
         }
 
-        if ($call->name === 'True') {
+        if ($call->name === 'true') {
             // wrap: record, delegate to the default dispatch, record
             $next();
             self::$calls[] = 'handler: post-default';
@@ -36,12 +36,12 @@ final class CustomAssertionSetup implements CustomAssertions
             return;
         }
 
-        if ($call->name === 'Zero') {
-            // rewrite: alias `assertZero($x)` to `Same(0, $x)` for the rest of the chain
+        if ($call->name === 'zero') {
+            // rewrite: alias `assertZero($x)` to `same(0, $x)` for the rest of the chain
             /** @var array<int, string> $args */
             $args = $call->arguments;
-            $rewritten = new Call('Same', [0, $args[0] ?? null]);
-            self::$calls[] = 'rewrite: Zero → Same(0, ' . implode(', ', \array_map(strval(...), $args)) . ')';
+            $rewritten = new Call('same', [0, $args[0] ?? null]);
+            self::$calls[] = 'rewrite: zero → same(0, ' . implode(', ', \array_map(strval(...), $args)) . ')';
             $next($rewritten);
 
             return;
