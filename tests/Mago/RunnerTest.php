@@ -89,15 +89,22 @@ final class RunnerTest extends TestCase
 
         /** @var list<Example> $examples */
         $examples = \iterator_to_array(AllTests::from($comments, ['php']), preserve_keys: false);
-        $issues = (new Runner(Cli::fromWorkspace(self::workspace())))->check($examples);
         $byFunction = [];
 
         foreach ($examples as $example) {
-            $name = \preg_replace('/^.*\\\\/', replacement: '', subject: $example->location()->name);
-            $byFunction[(string) $name] = \array_map(\strval(...), $issues[$example] ?? []);
+            $byFunction[self::functionName($example)] = [];
+        }
+
+        foreach ((new Runner(Cli::fromWorkspace(self::workspace())))->check($examples) as $example => $issues) {
+            $byFunction[self::functionName($example)] = \array_map(\strval(...), $issues);
         }
 
         return $byFunction;
+    }
+
+    private static function functionName(Example $example): string
+    {
+        return (string) \preg_replace('/^.*\\\\/', replacement: '', subject: $example->location()->name);
     }
 
     /**

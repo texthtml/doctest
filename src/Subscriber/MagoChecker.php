@@ -18,10 +18,23 @@ use TH\DocTest\TestCase\Example;
  */
 final class MagoChecker implements EventSubscriberInterface
 {
-    public function __construct(
-        /** @var \WeakMap<Example, list<Issue>> */
-        private readonly \WeakMap $issues,
-    ) {}
+    /** @var \WeakMap<Example, list<Issue>> */
+    private readonly \WeakMap $issues;
+
+    /**
+     * @param iterable<Example, list<Issue>> $issues the issues failing each example
+     */
+    public function __construct(iterable $issues)
+    {
+        /** @var \WeakMap<Example, list<Issue>> $byExample */
+        $byExample = new \WeakMap();
+
+        foreach ($issues as $example => $exampleIssues) {
+            $byExample[$example] = $exampleIssues;
+        }
+
+        $this->issues = $byExample;
+    }
 
     /**
      * runs Mago once on all the examples among the tests
