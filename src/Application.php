@@ -56,16 +56,40 @@ final class Application extends SingleCommandApplication
         ?string $coverageClover = null,
         #[Option('Scan files for examples statically (never include the code under test)')]
         bool $staticScan = false,
+        #[Option('Check the examples with Mago (lint & analyze) instead of running them')]
+        bool $mago = false,
+        #[Option('Mago executable to use with --mago (default: vendor/bin/mago, or mago from the PATH)')]
+        ?string $magoBinary = null,
     ): int {
         $logger = new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]);
+        $acceptedLanguages = $this->acceptedLanguages($languages);
 
-        $testSuite = TestSuite::fromPaths($paths, $filter, $this->acceptedLanguages($languages), $logger, $staticScan);
+        if ($mago && $coverageClover !== null && $coverageClover !== '') {
+            $logger->error('--coverage-clover cannot be used with --mago: examples are not executed');
+
+            return Command::INVALID;
+        }
+
+        if ($mago) {
+            [$testSuite, $executor] = $this->magoCheckedTestSuite(
+                TestSuite::discover($paths, $filter, $acceptedLanguages, $logger, $staticScan, lazyLoad: false),
+                $magoBinary,
+            );
+        } else {
+            $executor = new Subscriber\TestExecutor();
+            $testSuite = TestSuite::fromPaths($paths, $filter, $acceptedLanguages, $logger, $staticScan);
+        }
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));
         $testSuite->addSubscriber(new Subscriber\Progress($input, $output));
-        $testSuite->addSubscriber(new Subscriber\TestSetup($logger));
+
+        if (!$mago) {
+            // setups are only meaningful when the examples run
+            $testSuite->addSubscriber(new Subscriber\TestSetup($logger));
+        }
+
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
-        $testSuite->addSubscriber(new Subscriber\TestExecutor());
+        $testSuite->addSubscriber($executor);
 
         if ($junit !== null) {
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
@@ -76,6 +100,26 @@ final class Application extends SingleCommandApplication
         }
 
         return $testSuite->run($bail)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * Mago checks all the examples at once, up front: the test suite then only
+     * reports, example by example, what it found
+     *
+     * @return array{TestSuite, Subscriber\MagoChecker}
+     */
+    private function magoCheckedTestSuite(Iterator\Tests $tests, ?string $magoBinary): array
+    {
+        $tests = \iterator_to_array($tests, preserve_keys: false);
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            throw new \RuntimeException('getcwd failed');
+        }
+
+        $mago = new Mago\Runner(Mago\Cli::fromWorkspace($cwd, $magoBinary));
+
+        return [new TestSuite(new Iterator\ListedTests($tests)), Subscriber\MagoChecker::check($tests, $mago)];
     }
 
     /**

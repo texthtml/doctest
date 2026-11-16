@@ -55,7 +55,13 @@ final class Example implements TestCase
         return \implode(PHP_EOL, $expectedOutput);
     }
 
-    private function header(): string
+    /**
+     * `namespace …;` + `use …;` prelude the example code is eval'd under, so it
+     * resolves the documented symbol's names unqualified
+     *
+     * @internal
+     */
+    public function header(): string
     {
         [$runtimeNamespace, $useTarget] = $this->runtimeNamespaceAndUseTarget();
 

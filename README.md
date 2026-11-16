@@ -127,3 +127,34 @@ GitLab or GitHub test reporting:
 ```sh
 ./bin/doctest --junit report.xml src/
 ```
+
+## Checking examples with Mago
+
+Running an example only verifies the code paths it executes. Pass `--mago` to
+check the examples with [Mago](https://mago.carthage.software)
+(`mago lint` & `mago analyze`) instead of running them: an example then fails
+when Mago reports an issue on it (wrong argument types, renamed methods,
+coding style…), located at its line in the documented file:
+
+```
+$ ./bin/doctest --mago --static-scan examples/
+ [ERROR] Ratio#2 (examples/Ratio.php:10-11)
+         Error: examples/Ratio.php:11: error[invalid-property-write] Cannot
+         initialize readonly property `Ratio::$value` from within `self`.
+```
+
+- Mago runs with the project's `mago.toml` (rules, `php-version`, and
+  `minimum-fail-level`: issues below it don't fail an example, like they don't
+  fail `mago lint` / `mago analyze`) and sees the project's sources and
+  `vendor`. The documented files are analyzed alongside the examples even when
+  they are not part of the Mago sources.
+- `self::assert*()` calls are checked against the Webmozart Assert assertions,
+  including their type narrowing. Examples with an `ExamplesSetup` may also
+  call custom assertions (see `CustomAssertions`), which are not checked.
+- An intentional issue can be silenced in the example with a Mago pragma
+  comment, e.g. `// @mago-expect analysis:invalid-property-write`.
+- `--static-scan` is recommended with `--mago`: it doesn't include the code
+  under test at all.
+- Mago is run from `vendor/bin/mago` when installed there (`composer req --dev
+  carthage-software/mago`), from the `PATH` otherwise; use `--mago-binary` to
+  point to another executable.

@@ -42,7 +42,10 @@
             "@php vendor/bin/mago format --check",
             "@php vendor/bin/mago lint"
         ],
-        "analyze": "@php vendor/bin/mago analyze",
+        "analyze": [
+            "@php vendor/bin/mago analyze",
+            "@php bin/doctest --mago --static-scan src"
+        ],
         "fix": "@php vendor/bin/mago fix"
     },
     "config": {
