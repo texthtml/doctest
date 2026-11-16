@@ -71,7 +71,7 @@ final class TestSuite
 
     /**
      * the backend choice and lazy loading are independent switches: checking
-     * examples statically (`--mago`) must not include the scanned files
+     * examples with Mago (`--check lint,analyze`) must not include the scanned files
      *
      * @mago-expect lint:no-boolean-flag-parameter
      * @mago-expect lint:excessive-parameter-list

@@ -73,6 +73,6 @@ jobs:
           vendor/bin/mago format --check
           vendor/bin/mago lint
           vendor/bin/mago analyze
-          bin/doctest --mago --static-scan src
+          bin/doctest --check lint,analyze --static-scan src
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

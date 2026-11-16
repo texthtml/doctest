@@ -18,6 +18,8 @@ final class Runner
 {
     public function __construct(
         private readonly Cli $mago,
+        /** @var non-empty-list<Command> */
+        private readonly array $commands = [Command::Lint, Command::Analyze],
     ) {}
 
     /**
@@ -41,18 +43,14 @@ final class Runner
             $exported = $this->export($examples, $directory);
             $config = $this->mago->json(['config']);
 
-            $this->collect(
-                $this->mago->json(['lint', '--reporting-format=json', "{$directory->name}/examples"]),
-                Report::minimumFailLevel($config, section: 'linter'),
-                $exported,
-                $issues,
-            );
-            $this->collect(
-                $this->mago->json(['analyze', '--reporting-format=json', $directory->name]),
-                Report::minimumFailLevel($config, section: 'analyzer'),
-                $exported,
-                $issues,
-            );
+            foreach ($this->commands as $command) {
+                $this->collect(
+                    $this->mago->json([$command->value, '--reporting-format=json', $command->path($directory)]),
+                    Report::minimumFailLevel($config, $command->section()),
+                    $exported,
+                    $issues,
+                );
+            }
         } finally {
             $directory->remove();
         }
@@ -61,10 +59,8 @@ final class Runner
     }
 
     /**
-     * writes the examples to `examples/`, and what they need to be analyzed to
-     * `context/`: the {@see AssertionsStub}, and a copy of the documented files
-     * mago would not see otherwise (those outside of, or excluded from, the
-     * project's mago sources — e.g. `examples/`)
+     * writes the examples to `examples/`, and, when analyzing, what they need
+     * to be analyzed to `context/`
      *
      * @param list<Example> $examples
      *
@@ -72,9 +68,6 @@ final class Runner
      */
     private function export(array $examples, ExportDirectory $directory): array
     {
-        $directory->write('context/assertions-stub.php', AssertionsStub::source());
-
-        $analyzed = \array_fill_keys($this->mago->files(command: 'analyzer'), value: true);
         $exported = [];
 
         foreach ($examples as $index => $example) {
@@ -83,7 +76,29 @@ final class Runner
 
             $directory->write($file, $exportedExample->source());
             $exported["{$directory->name}/{$file}"] = $exportedExample;
+        }
 
+        if (\in_array(Command::Analyze, $this->commands, strict: true)) {
+            $this->exportContext($examples, $directory);
+        }
+
+        return $exported;
+    }
+
+    /**
+     * the {@see AssertionsStub}, and a copy of the documented files mago would
+     * not see otherwise (those outside of, or excluded from, the project's mago
+     * sources — e.g. `examples/`)
+     *
+     * @param list<Example> $examples
+     */
+    private function exportContext(array $examples, ExportDirectory $directory): void
+    {
+        $directory->write('context/assertions-stub.php', AssertionsStub::source());
+
+        $analyzed = \array_fill_keys($this->mago->files(command: 'analyzer'), value: true);
+
+        foreach ($examples as $index => $example) {
             $documented = $example->location()->path;
             // locations are relative to the workspace, unless outside of it
             $source = \str_starts_with($documented, '/') ? $documented : "{$this->mago->workspace}/{$documented}";
@@ -93,8 +108,6 @@ final class Runner
                 $directory->copy($source, "context/source-{$index}.php");
             }
         }
-
-        return $exported;
     }
 
     /**

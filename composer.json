@@ -44,7 +44,7 @@
         ],
         "analyze": [
             "@php vendor/bin/mago analyze",
-            "@php bin/doctest --mago --static-scan src"
+            "@php bin/doctest --check lint,analyze --static-scan src"
         ],
         "fix": "@php vendor/bin/mago fix"
     },

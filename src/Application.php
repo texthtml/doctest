@@ -33,6 +33,7 @@ final class Application extends SingleCommandApplication
      *
      * @param list<string> $paths
      * @param list<string> $languages "*" to match any language, "" to match unspecified language
+     * @param list<string> $check "run", "lint" and/or "analyze", each possibly comma-separated
      */
     public function __invoke(
         Input\InputInterface $input,
@@ -56,70 +57,75 @@ final class Application extends SingleCommandApplication
         ?string $coverageClover = null,
         #[Option('Scan files for examples statically (never include the code under test)')]
         bool $staticScan = false,
-        #[Option('Check the examples with Mago (lint & analyze) instead of running them')]
-        bool $mago = false,
-        #[Option('Mago executable to use with --mago (default: vendor/bin/mago, or mago from the PATH)')]
+        #[Option('What to do with the examples: "run" them, check them with Mago ("lint", "analyze"),'
+        . PHP_EOL
+        . 'or any combination (comma-separated or repeated, e.g. --check=run,analyze)', suggestedValues: [
+            'run',
+            'lint',
+            'analyze',
+        ])]
+        array $check = ['run'],
+        #[Option('Mago executable for the lint & analyze checks (default: vendor/bin/mago, or mago from the PATH)')]
         ?string $magoBinary = null,
     ): int {
         $logger = new ConsoleLogger($output, [LogLevel::WARNING => Output\OutputInterface::VERBOSITY_NORMAL]);
         $acceptedLanguages = $this->acceptedLanguages($languages);
+        $checks = Check::fromOption($check);
+        $run = \in_array(Check::Run, $checks, strict: true);
+        $magoCommands = Check::magoCommands($checks);
 
-        if ($mago && $coverageClover !== null && $coverageClover !== '') {
-            $logger->error('--coverage-clover cannot be used with --mago: examples are not executed');
+        $coverageClover = $coverageClover === '' ? null : $coverageClover;
+
+        if (!$run && $coverageClover !== null) {
+            $logger->error('--coverage-clover needs the "run" check: the examples are not executed otherwise');
 
             return Command::INVALID;
         }
 
-        if ($mago) {
-            [$testSuite, $executor] = $this->magoCheckedTestSuite(
-                TestSuite::discover($paths, $filter, $acceptedLanguages, $logger, $staticScan, lazyLoad: false),
-                $magoBinary,
+        $tests = TestSuite::discover(
+            $paths,
+            $filter,
+            $acceptedLanguages,
+            $logger,
+            $staticScan,
+            lazyLoad: $magoCommands === [],
+        );
+        $magoChecker = null;
+
+        if ($magoCommands !== []) {
+            [$tests, $magoChecker] = Subscriber\MagoChecker::checkTests(
+                $tests,
+                new Mago\Runner(Mago\Cli::fromWorkingDirectory($magoBinary), $magoCommands),
+                lazyLoadLogger: $run && $staticScan ? $logger : null,
             );
-        } else {
-            $executor = new Subscriber\TestExecutor();
-            $testSuite = TestSuite::fromPaths($paths, $filter, $acceptedLanguages, $logger, $staticScan);
         }
+
+        $testSuite = new TestSuite($tests);
 
         $testSuite->addSubscriber(new Subscriber\ProgressBar($input, $output));
         $testSuite->addSubscriber(new Subscriber\Progress($input, $output));
 
-        if (!$mago) {
+        if ($run) {
             // setups are only meaningful when the examples run
             $testSuite->addSubscriber(new Subscriber\TestSetup($logger));
+            $testSuite->addSubscriber(new Subscriber\TestExecutor());
+        }
+
+        if ($magoChecker !== null) {
+            $testSuite->addSubscriber($magoChecker);
         }
 
         $testSuite->addSubscriber(new Subscriber\Summary($input, $output));
-        $testSuite->addSubscriber($executor);
 
         if ($junit !== null) {
             $testSuite->addSubscriber(new Subscriber\JunitOutput($junit));
         }
 
-        if ($coverageClover !== null && $coverageClover !== '') {
+        if ($coverageClover !== null) {
             $testSuite->addSubscriber(new Subscriber\CodeCoverage($paths, $coverageClover));
         }
 
         return $testSuite->run($bail)->isSuccess() ? Command::SUCCESS : Command::FAILURE;
-    }
-
-    /**
-     * Mago checks all the examples at once, up front: the test suite then only
-     * reports, example by example, what it found
-     *
-     * @return array{TestSuite, Subscriber\MagoChecker}
-     */
-    private function magoCheckedTestSuite(Iterator\Tests $tests, ?string $magoBinary): array
-    {
-        $tests = \iterator_to_array($tests, preserve_keys: false);
-        $cwd = \getcwd();
-
-        if ($cwd === false) {
-            throw new \RuntimeException('getcwd failed');
-        }
-
-        $mago = new Mago\Runner(Mago\Cli::fromWorkspace($cwd, $magoBinary));
-
-        return [new TestSuite(new Iterator\ListedTests($tests)), Subscriber\MagoChecker::check($tests, $mago)];
     }
 
     /**

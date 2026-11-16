@@ -33,6 +33,20 @@ final class Cli
     }
 
     /**
+     * with the current working directory as workspace
+     */
+    public static function fromWorkingDirectory(?string $binary = null): self
+    {
+        $cwd = \getcwd();
+
+        if ($cwd === false) {
+            throw new \RuntimeException('getcwd failed');
+        }
+
+        return self::fromWorkspace($cwd, $binary);
+    }
+
+    /**
      * @param non-empty-list<string> $arguments
      *
      * @return array<mixed> decoded JSON output (mago reports issues with a
