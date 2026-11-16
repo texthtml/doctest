@@ -12,6 +12,7 @@ use TH\DocTest\Event\ExecuteTest;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Subscriber\TestExecutor;
 use TH\DocTest\TestCase\Example;
+use TH\Maybe\Option;
 
 /**
  * @phpstan-type Failure array{class:class-string<\Throwable>,message:string}
@@ -21,7 +22,7 @@ final class TestExecutorTest extends TestCase
     private TestExecutor $testExecutor;
 
     /**
-     * @return \Traversable<string,array{0:Example,1:Failure|null}>
+     * @return \Traversable<string,array{0:Example,1:Option<Failure>}>
      * @throws \Symfony\Component\Finder\Exception\DirectoryNotFoundException
      */
     public static function codeBlocsProvider(): \Traversable
@@ -37,8 +38,8 @@ final class TestExecutorTest extends TestCase
                 new ReflectionClass(self::class),
                 self::class,
                 path: $path,
-                startLine: 1,
-                endLine: null,
+                startLine: Option\some(1),
+                endLine: Option\none(),
                 index: $index++,
             );
 
@@ -59,21 +60,21 @@ final class TestExecutorTest extends TestCase
     }
 
     /**
-     * @param Failure|null $failure
+     * @param Option<Failure> $failure
      * @throws \InvalidArgumentException
      */
     #[DataProvider('codeBlocsProvider')]
-    public function testCodeBlocs(Example $example, ?array $failure): void
+    public function testCodeBlocs(Example $example, Option $failure): void
     {
-        if ($failure !== null) {
+        $failure->inspect(function (array $failure): void {
             $this->expectException($failure['class']);
             $message = \preg_quote(str: $failure['message'], delimiter: '/');
             $this->expectExceptionMessageMatches("/^{$message}$/");
-        }
+        });
 
         $this->testExecutor->execute(new ExecuteTest($example));
 
-        static::assertNull($failure);
+        static::assertTrue($failure->isNone());
     }
 
     /**
@@ -89,7 +90,7 @@ final class TestExecutorTest extends TestCase
     }
 
     /**
-     * @return array{code:string,failure:?Failure}
+     * @return array{code:string,failure:Option<Failure>}
      */
     private static function loadExample(\SplFileInfo $example): array
     {
@@ -98,25 +99,33 @@ final class TestExecutorTest extends TestCase
 
         $code = \preg_replace(pattern: "/^<\?php/", replacement: '', subject: $code);
         \assert(\is_string($code), description: 'Something wrong happened');
-        $failure = null;
 
-        $matches = [];
-
-        \preg_match("/^( *)\/\/(?<comment>.*)/", $code, $matches);
-
-        if ($matches !== []) {
-            \preg_match('/(?<class>[^ ]+) (?<message>.+)/', $matches['comment'], $matches);
-
-            if ($matches !== []) {
+        $failure = self::pregMatch("/^( *)\/\/(?<comment>.*)/", $code)
+            ->andThen(static fn(array $matches): Option => self::pregMatch(
+                '/(?<class>[^ ]+) (?<message>.+)/',
+                $matches['comment'],
+            ))
+            ->map(static function (array $matches): array {
                 \assert(
                     \is_subclass_of($matches['class'], \Throwable::class),
                     "{$matches['class']} is not a Throwable",
                 );
 
-                $failure = ['class' => $matches['class'], 'message' => $matches['message']];
-            }
-        }
+                return ['class' => $matches['class'], 'message' => $matches['message']];
+            });
 
         return ['code' => $code, 'failure' => $failure];
+    }
+
+    /**
+     * @return Option<array<string>>
+     */
+    private static function pregMatch(string $pattern, string $subject): Option
+    {
+        $matches = [];
+
+        \preg_match($pattern, $subject, $matches);
+
+        return Option\fromValue($matches, noneValue: []);
     }
 }

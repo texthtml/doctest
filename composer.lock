@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f4692055f4afba51ca0a0a7eecdc600c",
+    "content-hash": "31832aa04a2299f45e0f1bbcf21b7ed9",
     "packages": [
         {
             "name": "nikic/php-parser",
@@ -1130,6 +1130,114 @@
                 }
             ],
             "time": "2026-10-23T16:51:52+00:00"
+        },
+        {
+            "name": "texthtml/maybe",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/texthtml/maybe.git",
+                "reference": "0639bb7ba9e0ba19df5c8b30c7aa75c2c0f39640"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/texthtml/maybe/zipball/0639bb7ba9e0ba19df5c8b30c7aa75c2c0f39640",
+                "reference": "0639bb7ba9e0ba19df5c8b30c7aa75c2c0f39640",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2",
+                "texthtml/object-reaper": "^1.0"
+            },
+            "require-dev": {
+                "carthage-software/mago": "^1.59",
+                "infection/infection": "^0.29 || ^0.35",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.0|^11.0|^12.0|^13.0",
+                "texthtml/doctest": "^1.2.1",
+                "vimeo/psalm": "^6.0 || ^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions/internal.php",
+                    "src/functions/option.php",
+                    "src/functions/result.php"
+                ],
+                "psr-4": {
+                    "TH\\Maybe\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mathieu Rochette",
+                    "email": "mathieu@texthtml.net"
+                }
+            ],
+            "description": "Option & Result types",
+            "support": {
+                "issues": "https://github.com/texthtml/maybe/issues",
+                "source": "https://github.com/texthtml/maybe/tree/v1.1.0"
+            },
+            "time": "2026-11-15T14:48:08+00:00",
+            "published-time": "2026-11-15T14:49:44+00:00"
+        },
+        {
+            "name": "texthtml/object-reaper",
+            "version": "v1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/texthtml/php-object-reaper.git",
+                "reference": "5704a40b5941e36f0f55a6f946464a79fa792f29"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/texthtml/php-object-reaper/zipball/5704a40b5941e36f0f55a6f946464a79fa792f29",
+                "reference": "5704a40b5941e36f0f55a6f946464a79fa792f29",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.5",
+                "slevomat/coding-standard": "^8.0",
+                "squizlabs/php_codesniffer": "^4.0",
+                "texthtml/doctest": "^0.3"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "TH\\ObjectReaper\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mathieu Rochette",
+                    "email": "mathieu@texthtml.net"
+                }
+            ],
+            "description": "Be notified of objects being destroyed",
+            "support": {
+                "issues": "https://github.com/texthtml/php-object-reaper/issues",
+                "source": "https://github.com/texthtml/php-object-reaper/tree/v1.2.0"
+            },
+            "time": "2026-11-13T21:13:49+00:00",
+            "published-time": "2026-11-13T21:20:02+00:00"
         },
         {
             "name": "webmozart/assert",

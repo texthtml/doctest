@@ -13,6 +13,7 @@ use TH\DocTest\Iterator\LazyLoadedTests;
 use TH\DocTest\Iterator\SourceComments;
 use TH\DocTest\Iterator\StaticComments;
 use TH\DocTest\Iterator\Tests;
+use TH\Maybe\Option;
 
 final class TestSuite
 {
@@ -57,12 +58,12 @@ final class TestSuite
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<list<string>> $languageFilter Use empty string for unspecified language, and none for any languages
      */
     public static function fromPaths(
         array $paths,
         string $filter,
-        ?array $acceptedLanguages,
+        Option $languageFilter,
         LoggerInterface $logger,
         bool $staticScan = false,
     ): self {
@@ -70,7 +71,7 @@ final class TestSuite
             ? StaticComments::fromPaths($paths, $logger)
             : SourceComments::fromPaths($paths, $logger);
 
-        $tests = AllTests::from($comments, $acceptedLanguages);
+        $tests = AllTests::from($comments, $languageFilter);
 
         if ($staticScan) {
             $tests = new LazyLoadedTests($tests, $logger);

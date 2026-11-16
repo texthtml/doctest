@@ -7,6 +7,7 @@ namespace TH\DocTest\Tests\Iterator;
 use PHPUnit\Framework\TestCase;
 use TH\DocTest\Iterator\AllTests;
 use TH\DocTest\Iterator\StaticCommentSources;
+use TH\Maybe\Option;
 
 final class StaticScanTest extends TestCase
 {
@@ -14,7 +15,7 @@ final class StaticScanTest extends TestCase
     {
         $tests = \iterator_to_array(AllTests::from(
             new \TH\DocTest\Iterator\StaticComments(new StaticCommentSources([self::fixturePath()], self::logger())),
-            ['php'],
+            Option\some(['php']),
         ));
 
         static::assertNotEmpty($tests, 'the fixture example must be discovered');
@@ -32,7 +33,7 @@ final class StaticScanTest extends TestCase
         $testSuite = \TH\DocTest\TestSuite::fromPaths(
             [self::fixturePath()],
             '',
-            ['php'],
+            Option\some(['php']),
             self::logger(),
             staticScan: true,
         );
@@ -108,7 +109,7 @@ final class StaticScanTest extends TestCase
         $testSuite = \TH\DocTest\TestSuite::fromPaths(
             [__DIR__ . '/fixtures/ClassLevelSetupsFixture.php'],
             '',
-            ['php'],
+            Option\some(['php']),
             self::logger(),
             staticScan: true,
         );
@@ -127,7 +128,7 @@ final class StaticScanTest extends TestCase
         $testSuite = \TH\DocTest\TestSuite::fromPaths(
             [__DIR__ . '/fixtures/SameNamedHelpersFixture.php'],
             '',
-            ['php'],
+            Option\some(['php']),
             self::logger(),
             staticScan: true,
         );

@@ -12,11 +12,12 @@ use TH\DocTest\Iterator\Comment;
 use TH\DocTest\Iterator\Comments;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\TestCase\Example;
+use TH\Maybe\Option;
 
 final class AllTestsTest extends TestCase
 {
     /**
-     * @return \Traversable<string,array{comment:string, expectedTests:list<string>, acceptedLanguages?:list<string>}>
+     * @return \Traversable<string,array{comment:string, expectedTests:list<string>, languageFilter?:Option<list<string>>}>
      */
     public static function commentsProvider(): \Traversable
     {
@@ -75,7 +76,7 @@ final class AllTestsTest extends TestCase
                     console.log("Hello World!")
                     JS,
             ],
-            'acceptedLanguages' => [''],
+            'languageFilter' => Option\some(['']),
         ];
 
         yield 'Comment with a non specified code bloc, when not accepted' => [
@@ -163,15 +164,15 @@ final class AllTestsTest extends TestCase
 
     /**
      * @param list<string> $expectedTests
-     * @param list<string>|null $acceptedLanguages
+     * @param Option<list<string>> $languageFilter
      */
     #[DataProvider('commentsProvider')]
     public function testFindingCodeBlocInComments(
         string $comment,
         array $expectedTests,
-        ?array $acceptedLanguages = ['php'],
+        Option $languageFilter = new Option\Some(['php']),
     ): void {
-        $tests = new AllTests(self::comments($comment), $acceptedLanguages);
+        $tests = new AllTests(self::comments($comment), $languageFilter);
 
         $count = 0;
 

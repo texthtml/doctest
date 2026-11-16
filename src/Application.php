@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input;
 use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output;
 use Symfony\Component\Console\SingleCommandApplication;
+use TH\Maybe;
 
 #[AsCommand('doctest', help: 'Test code examples found in comments')]
 final class Application extends SingleCommandApplication
@@ -81,20 +82,20 @@ final class Application extends SingleCommandApplication
     /**
      * @param list<string> $languages "*" to match any language, "" to match unspecified language
      *
-     * @return list<string>|null null to match any language
+     * @return Maybe\Option<list<string>> none to match any language
      */
-    private function acceptedLanguages(array $languages): ?array
+    private function acceptedLanguages(array $languages): Maybe\Option
     {
         $accepted = [];
 
         foreach ($languages as $lang) {
             if ($lang === '*') {
-                return null;
+                return Maybe\Option\none();
             }
 
             $accepted[] = $lang;
         }
 
-        return $accepted;
+        return Maybe\Option\some($accepted);
     }
 }

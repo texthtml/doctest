@@ -7,6 +7,7 @@ namespace TH\DocTest\TestCase;
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
+use TH\Maybe\Option;
 
 final class Example implements TestCase
 {
@@ -25,17 +26,20 @@ final class Example implements TestCase
         eval($this->header() . (string) new EvaledCode($this->code));
     }
 
-    public function expectedFailure(): ?ExpectedFailure
+    /**
+     * @return Option<ExpectedFailure>
+     */
+    public function expectedFailure(): Option
     {
         foreach (\explode(PHP_EOL, $this->code) as $line) {
             $expectedFailure = self::expectedFailureFromLine($line);
 
-            if ($expectedFailure !== null) {
+            if ($expectedFailure->isSome()) {
                 return $expectedFailure;
             }
         }
 
-        return null;
+        return Option\none();
     }
 
     public function expectedOutput(): string
@@ -99,21 +103,24 @@ final class Example implements TestCase
         return ["TH\\Doctest\\Runtime\\{$source->getName()}{$extraNamespacePart}", $useTarget];
     }
 
-    private static function expectedFailureFromLine(string $line): ?ExpectedFailure
+    /**
+     * @return Option<ExpectedFailure>
+     */
+    private static function expectedFailureFromLine(string $line): Option
     {
         $matches = [];
 
         \preg_match("/\/\/\s*@throws\s*(?<class>[^ ]+)\s+(?<message>[^\s].*[^\s])\s*/", $line, $matches);
 
         if ($matches === []) {
-            return null;
+            return Option\none();
         }
 
         if (!\is_a($matches['class'], \Throwable::class, allow_string: true)) {
             throw new \RuntimeException("`{$matches['class']}` isn't a `\Throwable`");
         }
 
-        return new ExpectedFailure($matches['class'], $matches['message']);
+        return Option\some(new ExpectedFailure($matches['class'], $matches['message']));
     }
 
     /**
