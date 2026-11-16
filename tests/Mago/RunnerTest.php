@@ -69,9 +69,7 @@ final class RunnerTest extends TestCase
         // `false` as mago: running it would fail the check
         $runner = new Runner(new Cli(['false'], self::workspace()));
 
-        $runner->check([]);
-
-        $this->addToAssertionCount(1);
+        static::assertCount(0, $runner->check([]));
     }
 
     public function testExportDirectoryIsRemoved(): void

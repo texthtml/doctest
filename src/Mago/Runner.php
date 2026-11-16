@@ -23,10 +23,10 @@ final class Runner
     /**
      * @param list<Example> $examples
      *
-     * @return \ArrayAccess<Example, list<Issue>> the issues failing each example
-     *     (examples without issues are left out)
+     * @return \ArrayAccess<Example, list<Issue>>&\Countable the issues failing
+     *     each example (examples without issues are left out)
      */
-    public function check(array $examples): \ArrayAccess
+    public function check(array $examples): \ArrayAccess&\Countable
     {
         /** @var \WeakMap<Example, list<Issue>> $issues */
         $issues = new \WeakMap();
