@@ -18,10 +18,8 @@ use TH\DocTest\TestCase\Example;
  */
 final class MagoChecker implements EventSubscriberInterface
 {
-    /**
-     * @param \WeakMap<Example, list<Issue>> $issues
-     */
     public function __construct(
+        /** @var \WeakMap<Example, list<Issue>> */
         private readonly \WeakMap $issues,
     ) {}
 

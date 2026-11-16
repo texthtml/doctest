@@ -9,10 +9,8 @@ namespace TH\DocTest\Mago;
  */
 final class IssuesFound extends \RuntimeException
 {
-    /**
-     * @param non-empty-list<Issue> $issues
-     */
     public function __construct(
+        /** @var non-empty-list<Issue> */
         public readonly array $issues,
     ) {
         parent::__construct(\implode(PHP_EOL, \array_map(\strval(...), $issues)));

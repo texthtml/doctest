@@ -12,12 +12,10 @@ namespace TH\DocTest\Mago;
  */
 final class Cli
 {
-    /**
-     * @param non-empty-list<string> $command how to invoke mago, e.g. `[PHP_BINARY, 'vendor/bin/mago']`
-     * @param non-empty-string $workspace
-     */
     public function __construct(
+        /** @var non-empty-list<string> how to invoke mago, e.g. `[PHP_BINARY, 'vendor/bin/mago']` */
         private readonly array $command,
+        /** @var non-empty-string */
         public readonly string $workspace,
     ) {}
 
