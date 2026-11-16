@@ -6,6 +6,7 @@ namespace TH\DocTest\Iterator;
 
 use Psr\Log\LoggerInterface;
 use TH\DocTest\TestCase;
+use TH\Maybe\Option;
 
 final class FilteredTests implements Tests
 {
@@ -35,14 +36,14 @@ final class FilteredTests implements Tests
 
     /**
      * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<list<string>> $languageFilter Use empty string for unspecified language, and none for any languages
      */
     public static function fromPaths(
         array $paths,
         string $filter,
-        ?array $acceptedLanguages,
+        Option $languageFilter,
         LoggerInterface $logger,
     ): self {
-        return self::filter(AllTests::from(SourceComments::fromPaths($paths, $logger), $acceptedLanguages), $filter);
+        return self::filter(AllTests::from(SourceComments::fromPaths($paths, $logger), $languageFilter), $filter);
     }
 }

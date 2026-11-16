@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace TH\DocTest\Location;
 
+use TH\Maybe\Option;
+
 final class CodeLocation implements Location
 {
     /**
@@ -19,8 +21,10 @@ final class CodeLocation implements Location
         public readonly \ReflectionClass|\ReflectionMethod|\ReflectionFunction|SymbolSource $source,
         public readonly string $name,
         public readonly string $path,
-        public readonly ?int $startLine,
-        public readonly ?int $endLine,
+        /** @var Option<int> */
+        public readonly Option $startLine,
+        /** @var Option<int> */
+        public readonly Option $endLine,
         public readonly int $index,
     ) {}
 
@@ -30,7 +34,7 @@ final class CodeLocation implements Location
             $this->source,
             $this->name,
             $this->path,
-            $this->startLine !== null ? $this->startLine + $offset : null,
+            $this->startLine->map(static fn(int $startLine): int => $startLine + $offset),
             $this->endLine,
             $this->index,
         );
@@ -48,7 +52,7 @@ final class CodeLocation implements Location
             $this->name,
             $this->path,
             $this->startLine,
-            $this->startLine !== null ? $this->startLine + $length - 1 : null,
+            $this->startLine->map(static fn(int $startLine): int => $startLine + $length - 1),
             $this->index,
         );
     }
@@ -66,14 +70,11 @@ final class CodeLocation implements Location
             $name = "{$source->getDeclaringClass()->getName()}::{$name}(…)";
         }
 
-        $endLine = $source->getStartLine();
-
-        if ($endLine === false) {
-            return new self($source, $name, self::makePathRelative($source->getFileName()), null, null, 1);
-        }
-
-        $endLine--;
-        $startLine = $endLine - \substr_count($comment, \PHP_EOL);
+        // fromValue() does not strip false from its Option<U> type (texthtml/maybe#103)
+        /** @var Option<int> $declarationLine */
+        $declarationLine = Option\fromValue($source->getStartLine(), noneValue: false);
+        $endLine = $declarationLine->map(static fn(int $declarationLine): int => $declarationLine - 1);
+        $startLine = $endLine->map(static fn(int $endLine): int => $endLine - \substr_count($comment, \PHP_EOL));
 
         return new self($source, $name, self::makePathRelative($source->getFileName()), $startLine, $endLine, 1);
     }
@@ -83,7 +84,14 @@ final class CodeLocation implements Location
         $endLine = $source->docEndLine ?? 1;
         $startLine = $endLine - \substr_count($comment, \PHP_EOL);
 
-        return new self($source, $source->name, self::relative($source->path), $startLine, $endLine, 1);
+        return new self(
+            $source,
+            $source->name,
+            self::relative($source->path),
+            Option\some($startLine),
+            Option\some($endLine),
+            1,
+        );
     }
 
     private static function relative(string $path): string
@@ -135,15 +143,11 @@ final class CodeLocation implements Location
 
     public function __toString(): string
     {
-        $suffix = $this->path;
-
-        if ($this->startLine !== null) {
-            $suffix .= ":{$this->startLine}";
-
-            if ($this->endLine !== $this->startLine) {
-                $suffix .= "-{$this->endLine}";
-            }
-        }
+        $lines = $this->startLine->mapOr(fn(int $startLine): string => $this->endLine->mapOr(
+            static fn(int $endLine): string => $endLine === $startLine ? ":{$startLine}" : ":{$startLine}-{$endLine}",
+            ":{$startLine}-",
+        ), '');
+        $suffix = $this->path . $lines;
 
         return "{$this->name}#{$this->index} ({$suffix})";
     }

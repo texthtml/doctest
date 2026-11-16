@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TH\DocTest;
 
 use TH\DocTest\Location\Location;
+use TH\Maybe\Option;
 
 interface TestCase
 {
@@ -12,7 +13,10 @@ interface TestCase
 
     public function eval(): void;
 
-    public function expectedFailure(): ?TestCase\ExpectedFailure;
+    /**
+     * @return Option<TestCase\ExpectedFailure>
+     */
+    public function expectedFailure(): Option;
 
     public function expectedOutput(): string;
 }
