@@ -53,19 +53,23 @@ final class TestSetupTest extends TestCase
 
         // example 1: fresh instance, before hook, then the after hook at teardown
         $dispatcher->dispatch(new Event\BeforeTest($example));
-        static::assertSame(['construct h', 'before h'], HookedSetup::$calls);
+        $afterFirstBefore = HookedSetup::$calls;
 
         $dispatcher->dispatch(new Event\ExecuteTest($example));
         $dispatcher->dispatch(new Event\AfterTest($example));
-        static::assertSame(['construct h', 'before h', 'after h'], HookedSetup::$calls);
+        $afterFirstExample = HookedSetup::$calls;
 
         // example 2: the whole lifecycle runs again, freshly
         $dispatcher->dispatch(new Event\BeforeTest($example));
         $dispatcher->dispatch(new Event\ExecuteTest($example));
         $dispatcher->dispatch(new Event\AfterTest($example));
+        $afterSecondExample = HookedSetup::$calls;
+
+        static::assertSame(['construct h', 'before h'], $afterFirstBefore);
+        static::assertSame(['construct h', 'before h', 'after h'], $afterFirstExample);
         static::assertSame(
             ['construct h', 'before h', 'after h', 'construct h', 'before h', 'after h'],
-            HookedSetup::$calls,
+            $afterSecondExample,
         );
     }
 

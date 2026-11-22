@@ -31,9 +31,13 @@ final class TestExecutor implements EventSubscriberInterface
         \ob_start();
 
         try {
-            $expectedFailure === null
-                ? $event->test->eval()
-                : self::assertThrows($event->test->eval(...), $expectedFailure);
+            $expectedFailure->mapOrElse(
+                static fn(ExpectedFailure $expectedFailure) => self::assertThrows(
+                    $event->test->eval(...),
+                    $expectedFailure,
+                ),
+                $event->test->eval(...),
+            );
         } finally {
             $output = \ob_get_clean();
             \assert(\is_string($output), description: 'example messed up with output buffers');

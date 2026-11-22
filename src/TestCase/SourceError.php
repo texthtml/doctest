@@ -6,6 +6,7 @@ namespace TH\DocTest\TestCase;
 
 use TH\DocTest\Location\FileLocation;
 use TH\DocTest\TestCase;
+use TH\Maybe\Option;
 
 final class SourceError implements TestCase
 {
@@ -24,9 +25,12 @@ final class SourceError implements TestCase
         return $this->location;
     }
 
-    public function expectedFailure(): ?ExpectedFailure
+    /**
+     * @return Option<ExpectedFailure>
+     */
+    public function expectedFailure(): Option
     {
-        return null;
+        return Option\none();
     }
 
     public function expectedOutput(): string

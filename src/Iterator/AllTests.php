@@ -6,13 +6,14 @@ namespace TH\DocTest\Iterator;
 
 use TH\DocTest\Location\CodeLocation;
 use TH\DocTest\TestCase;
+use TH\Maybe\Option;
 
 final class AllTests implements Tests
 {
     public function __construct(
         private readonly Comments $comments,
-        /** @var list<string>|null Use empty string for unspecified language, and null for any languages */
-        private readonly ?array $acceptedLanguages,
+        /** @var Option<list<string>> Use empty string for unspecified language, and none for any languages */
+        private readonly Option $languageFilter,
     ) {}
 
     /**
@@ -32,16 +33,12 @@ final class AllTests implements Tests
     }
 
     /**
-     * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
-     */
-    /**
      * @param Comments $comments comment source (reflection or static backend)
-     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param Option<list<string>> $languageFilter Use empty string for unspecified language, and none for any languages
      */
-    public static function from(Comments $comments, ?array $acceptedLanguages): self
+    public static function from(Comments $comments, Option $languageFilter): self
     {
-        return new self($comments, $acceptedLanguages);
+        return new self($comments, $languageFilter);
     }
 
     /**
@@ -52,35 +49,32 @@ final class AllTests implements Tests
         $lines = new \ArrayIterator(\explode(PHP_EOL, $comment->text));
         $index = 1;
 
-        while (true) {
-            $example = $this->nextExample($lines, $comment->location, $index++);
-
-            if ($example === null) {
-                break;
-            }
-
-            yield $example;
+        while (($example = $this->nextExample($lines, $comment->location, $index++))->isSome()) {
+            yield $example->unwrap();
         }
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     *
+     * @return Option<TestCase\Example>
      */
-    private function nextExample(\ArrayIterator $lines, CodeLocation $location, int $index): ?TestCase\Example
+    private function nextExample(\ArrayIterator $lines, CodeLocation $location, int $index): Option
     {
-        $codeblockStartedAt = $this->findFencedPHPCodeBlockStart($lines);
+        $codeblockStart = $this->findFencedCodeBlockStart($lines);
 
-        if ($codeblockStartedAt === null) {
-            return null;
-        }
-
-        return $this->readExample($lines, $location->startingAt($codeblockStartedAt)->withIndex($index));
+        return $codeblockStart->andThen(fn(int $startedAt): Option => $this->readExample(
+            $lines,
+            $location->startingAt($startedAt)->withIndex($index),
+        ));
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     *
+     * @return Option<TestCase\Example>
      */
-    private function readExample(\ArrayIterator $lines, CodeLocation $location): ?TestCase\Example
+    private function readExample(\ArrayIterator $lines, CodeLocation $location): Option
     {
         $buffer = [];
         $length = 0;
@@ -90,7 +84,7 @@ final class AllTests implements Tests
             $lines->next();
 
             if ($this->endOfAFencedCodeBlock($line)) {
-                return new TestCase\Example(\implode(PHP_EOL, $buffer), $location->ofLength($length));
+                return Option\some(new TestCase\Example(\implode(PHP_EOL, $buffer), $location->ofLength($length)));
             }
 
             $length++;
@@ -101,13 +95,15 @@ final class AllTests implements Tests
             $buffer[] = $replacement;
         }
 
-        return null;
+        return Option\none();
     }
 
     /**
      * @param \ArrayIterator<int,string> $lines
+     *
+     * @return Option<int>
      */
-    private function findFencedPHPCodeBlockStart(\ArrayIterator $lines): ?int
+    private function findFencedCodeBlockStart(\ArrayIterator $lines): Option
     {
         $insideAFencedCodeBlock = false;
 
@@ -125,27 +121,33 @@ final class AllTests implements Tests
 
             $lang = $this->startOfAFencedCodeBlock($line);
 
-            if ($lang === false) {
+            if ($lang->isNone()) {
                 continue;
             }
 
-            if ($this->isAcceptedLanguage($lang)) {
-                return $lines->key();
+            if ($this->isAcceptedLanguage($lang->unwrap())) {
+                // the key is null when the fence opens on the comment's last line: no example to read.
+                // fromValue() does not strip null from its Option<U> type (texthtml/maybe#103)
+                // @mago-expect lint:inline-variable-return
+                /** @var Option<int> $codeblockStart */
+                $codeblockStart = Option\fromValue($lines->key());
+
+                return $codeblockStart;
             }
 
             $insideAFencedCodeBlock = true;
         }
 
-        return null;
+        return Option\none();
     }
 
     private function isAcceptedLanguage(string $lang): bool
     {
-        if ($this->acceptedLanguages === null) {
-            return true;
-        }
-
-        return \in_array(needle: $lang, haystack: $this->acceptedLanguages, strict: true);
+        return $this->languageFilter->isNoneOr(static fn(array $languages): bool => \in_array(
+            needle: $lang,
+            haystack: $languages,
+            strict: true,
+        ));
     }
 
     private function endOfAFencedCodeBlock(string $line): bool
@@ -153,14 +155,17 @@ final class AllTests implements Tests
         return \ltrim($line) === '* ```';
     }
 
-    private function startOfAFencedCodeBlock(string $line): false|string
+    /**
+     * @return Option<string> the code block language, none if the line does not start a fenced code block
+     */
+    private function startOfAFencedCodeBlock(string $line): Option
     {
         $line = \trim($line);
 
         if (!\str_starts_with($line, '* ```')) {
-            return false;
+            return Option\none();
         }
 
-        return \substr(string: $line, offset: 5);
+        return Option\some(\substr(string: $line, offset: 5));
     }
 }
