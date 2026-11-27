@@ -1,0 +1,35 @@
+ [OK] Ratio#1 (examples/Ratio.php:5-6)
+
+ [ERROR] Ratio#2 (examples/Ratio.php:10-11)
+
+         Error: examples/Ratio.php:11: error[invalid-property-write] Cannot
+         initialize readonly property `Ratio::$value` from within `self`.
+
+ [OK] Ratio::__construct(…)#1 (examples/Ratio.php:18)
+
+ [OK] Ratio::fromPercentage(…)#1 (examples/Ratio.php:31)
+
+ [OK] Ratio::formatPercentage(…)#1 (examples/Ratio.php:41-42)
+
+ [OK] Examples\hello#1 (examples/Setup.php:35-37)
+
+ [OK] Examples\world#1 (examples/Setup.php:45-50)
+
+ [OK] factorial#1 (examples/factorial.php:7-10)
+
+ [OK] factorial#2 (examples/factorial.php:14-16)
+
+ [OK] factorial#3 (examples/factorial.php:20-21)
+
+ [OK] factorial#4 (examples/factorial.php:25-26)
+
+ [OK] factorial#5 (examples/factorial.php:30-31)
+
+ [OK] factorial#6 (examples/factorial.php:35-39)
+
+ [OK] factorial#7 (examples/factorial.php:43-44)
+
+ [OK] Number of success: 13
+
+ [ERROR] Number of failures: 1
+

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace TH\DocTest\TestCase;
 
 use TH\DocTest\Location\CodeLocation;
+use TH\DocTest\Location\StrictTypes;
 use TH\DocTest\Location\SymbolSource;
 use TH\DocTest\TestCase;
 use TH\Maybe\Option;
@@ -59,19 +60,39 @@ final class Example implements TestCase
         return \implode(PHP_EOL, $expectedOutput);
     }
 
-    private function header(): string
+    /**
+     * `namespace …;` + `use …;` prelude the example code is eval'd under, so it
+     * resolves the documented symbol's names unqualified, preceded by
+     * `declare(strict_types=1);` when the documented file declares it (eval'd
+     * code doesn't inherit it, examples would otherwise always run in coercive
+     * mode)
+     *
+     * @internal
+     */
+    public function header(): string
     {
         [$runtimeNamespace, $useTarget] = $this->runtimeNamespaceAndUseTarget();
 
-        $prefixes = [
-            "namespace {$runtimeNamespace}\\Example{$this->location->index};",
-        ];
+        $prefixes = [];
+
+        if (StrictTypes::declaredIn($this->sourceFile())) {
+            $prefixes[] = 'declare(strict_types=1);';
+        }
+
+        $prefixes[] = "namespace {$runtimeNamespace}\\Example{$this->location->index};";
 
         if ($useTarget !== '') {
             $prefixes[] = "use {$useTarget};";
         }
 
         return \implode(separator: '', array: $prefixes);
+    }
+
+    private function sourceFile(): string
+    {
+        $source = $this->location->source;
+
+        return $source instanceof SymbolSource ? $source->path : (string) $source->getFileName();
     }
 
     /**

@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Snapshot-compare the console output and the JUnit XML output of
 # `doctest examples/` for both backends, plus the code coverage of the
-# reflection one. Regenerate the snapshots with --update after intentional
-# output changes.
+# reflection one, and the console output of `doctest --check lint,analyze
+# examples/` (Mago only) and `doctest --check run,lint,analyze examples/` (both
+# combined), for both backends too. Regenerate the snapshots with --update
+# after intentional output changes.
 #
 # the static backend is expected to be indistinguishable from the reflection
 # one on this corpus: both legs diff against the same snapshots, so any drift
@@ -13,6 +15,8 @@ cd "$(dirname "$0")/.."
 snapshot=tests/data/expected/examples-output.txt
 junit_snapshot=tests/data/expected/examples-junit.xml
 coverage_snapshot=tests/data/expected/examples-coverage.xml
+mago_snapshot=tests/data/expected/examples-mago.txt
+combined_snapshot=tests/data/expected/examples-run-and-mago.txt
 update=false
 
 if [ "${1:-}" = '--update' ]; then
@@ -39,7 +43,8 @@ else
     unset coverage_snapshot
 fi
 
-# factorial.php documents 3 deliberate failures, so any run is expected to exit 1
+# factorial.php documents 3 deliberate failures (and Ratio.php a deliberate
+# readonly property write Mago reports), so any run is expected to exit 1
 check_exit_status() {
     local status=$1 output=$2
     if [ "$status" -ne 1 ]; then
@@ -80,8 +85,27 @@ run_leg() {
     normalize_junit < "/tmp/${prefix}-junit.xml" > "/tmp/${prefix}-junit-normalized.xml"
 }
 
+# console output only, for the given checks
+run_checks_leg() {
+    local prefix=$1 checks=$2
+    shift 2
+
+    set +e
+    php bin/doctest --no-ansi --check "$checks" "$@" examples > "/tmp/${prefix}-output.txt" 2>&1
+    local status=$?
+    set -e
+
+    check_exit_status "$status" "/tmp/${prefix}-output.txt"
+
+    normalize < "/tmp/${prefix}-output.txt" > "/tmp/${prefix}-normalized.txt"
+}
+
 run_leg doctest
 run_leg doctest-static --static-scan
+run_checks_leg doctest-mago lint,analyze
+run_checks_leg doctest-mago-static lint,analyze --static-scan
+run_checks_leg doctest-combined run,lint,analyze
+run_checks_leg doctest-combined-static run,lint,analyze --static-scan
 
 if $update; then
     # both legs must stay identical anyway, so either artifact can seed the snapshot
@@ -89,10 +113,22 @@ if $update; then
     echo "updated $snapshot"
     cp /tmp/doctest-junit-normalized.xml "$junit_snapshot"
     echo "updated $junit_snapshot"
+    cp /tmp/doctest-mago-normalized.txt "$mago_snapshot"
+    echo "updated $mago_snapshot"
+    cp /tmp/doctest-combined-normalized.txt "$combined_snapshot"
+    echo "updated $combined_snapshot"
 else
     for prefix in doctest doctest-static; do
         diff -u "$snapshot" "/tmp/${prefix}-normalized.txt"
         diff -u "$junit_snapshot" "/tmp/${prefix}-junit-normalized.xml"
+    done
+
+    for prefix in doctest-mago doctest-mago-static; do
+        diff -u "$mago_snapshot" "/tmp/${prefix}-normalized.txt"
+    done
+
+    for prefix in doctest-combined doctest-combined-static; do
+        diff -u "$combined_snapshot" "/tmp/${prefix}-normalized.txt"
     done
 fi
 

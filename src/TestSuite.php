@@ -67,17 +67,39 @@ final class TestSuite
         LoggerInterface $logger,
         bool $staticScan = false,
     ): self {
+        return new self(self::discover($paths, $filter, $acceptedLanguages, $logger, $staticScan, $staticScan));
+    }
+
+    /**
+     * the backend choice and lazy loading are independent switches: checking
+     * examples with Mago (`--check lint,analyze`) must not include the scanned files
+     *
+     * @mago-expect lint:no-boolean-flag-parameter
+     * @mago-expect lint:excessive-parameter-list
+     *
+     * @param array<string> $paths paths to files and folder to look for PHP comments code examples in
+     * @param list<string>|null $acceptedLanguages Use empty string for unspecified language, and null for any languages
+     * @param bool $lazyLoad include the scanned files right before their examples run (static scan only)
+     */
+    public static function discover(
+        array $paths,
+        string $filter,
+        ?array $acceptedLanguages,
+        LoggerInterface $logger,
+        bool $staticScan,
+        bool $lazyLoad,
+    ): Tests {
         $comments = $staticScan
             ? StaticComments::fromPaths($paths, $logger)
             : SourceComments::fromPaths($paths, $logger);
 
         $tests = AllTests::from($comments, $languageFilter);
 
-        if ($staticScan) {
+        if ($staticScan && $lazyLoad) {
             $tests = new LazyLoadedTests($tests, $logger);
         }
 
-        return new self(FilteredTests::filter($tests, $filter));
+        return FilteredTests::filter($tests, $filter);
     }
 
     private function runTest(TestCase $test): TestOutcome
